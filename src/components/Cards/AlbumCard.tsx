@@ -9,7 +9,7 @@ interface AlbumCardProps {
 
 export const AlbumCard: React.FC<AlbumCardProps> = ({ entry, onPress }) => {
   const renderStars = (rating: number) => {
-    return '⭐'.repeat(rating) + '☆'.repeat(5 - rating);
+    return `${rating} / 10`;
   };
 
   return (
@@ -27,7 +27,7 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({ entry, onPress }) => {
       <View style={styles.content}>
         <Text style={styles.title}>{entry.album.title}</Text>
         <Text style={styles.artist}>{entry.album.artist}</Text>
-        <Text style={styles.rating}>{renderStars(entry.rating)}</Text>
+        <Text style={styles.rating}>Rating: {entry.rating}/10</Text>
         <Text style={styles.review} numberOfLines={2}>
           {entry.review}
         </Text>

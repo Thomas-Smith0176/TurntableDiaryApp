@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput} from 'react-native';
 import { useDiary } from '../context/DiaryContext';
 import { DiaryEntry, Album } from '../types';
-import StarRating from 'react-native-star-rating-widget';
+import { CrossfaderSlider } from '../components/Sliders/CrossfaderSlider';
 
 interface AddEntryScreenProps {
   navigation: any;
@@ -14,7 +14,7 @@ export const AddEntryScreen: React.FC<AddEntryScreenProps> = ({ navigation }) =>
   const [artist, setArtist] = useState('');
   const [genre, setGenre] = useState('');
   const [review, setReview] = useState('');
-  const [rating, setRating] = useState(1);
+  const [rating, setRating] = useState(5);
   const [totalTracks, setTotalTracks] = useState('');
 
   const handleAddEntry = () => {
@@ -97,20 +97,13 @@ export const AddEntryScreen: React.FC<AddEntryScreenProps> = ({ navigation }) =>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.label}>Rating: {rating}/5 ⭐</Text>
-          <View style={styles.ratingButtons}>
-            {/* <StarRating rating={rating} onChange={setRating}/> */}
-            {[1, 2, 3, 4, 5].map(num => (
-              <TouchableOpacity
-                key={num}
-                style={[
-                  styles.ratingButton,
-                  rating === num && styles.ratingButtonActive,
-                ]}
-                onPress={() => setRating(num)}
-              />
-            ))}
-          </View>
+          <Text style={styles.label}>Rating</Text>
+          <CrossfaderSlider
+            value={rating}
+            onValueChange={setRating}
+            min={1}
+            max={10}
+          />
         </View>
 
         <View style={styles.section}>
@@ -163,34 +156,7 @@ const styles = StyleSheet.create({
   reviewInput: {
     height: 100,
   },
-  ratingButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 8,
-  },
-  ratingButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f0f0f0',
-    borderWidth: 2,
-    borderColor: '#ddd',
-  },
-  ratingStar: {
-    padding: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  ratingButtonActive: {
-    backgroundColor: '#FFD700',
-    borderColor: '#FFA500',
-  },
-  ratingButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+
   submitButton: {
     backgroundColor: '#007AFF',
     paddingVertical: 14,
