@@ -1,8 +1,11 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import React, {useState} from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Image, ListRenderItem } from 'react-native';
 import { useDiary } from '../context/DiaryContext';
 import { AlbumCard } from '../components/Cards/AlbumCard';
-import { DiaryEntry } from '../types';
+import { Album, DiaryEntry } from '../types';
+import { searchAlbums } from '../services/SpotifyService';
+import { SearchBar } from 'react-native-screens';
+import { SpotifyAlbum } from '../types/spotifyTypes';
 
 interface AlbumDiaryScreenProps {
   route: any;
@@ -11,6 +14,35 @@ interface AlbumDiaryScreenProps {
 
 export const AlbumDiaryScreen: React.FC<AlbumDiaryScreenProps> = ({ route, navigation }) => {
   const { entries } = useDiary();
+  const [query  , setQuery] = useState<string>('');
+  const [results, setResults] = useState<SpotifyAlbum[]>([]);
+
+  const handleSearch = async () => {
+    if (query.length < 3) {
+      const albums = await searchAlbums(query);
+      setResults(albums);
+    }
+  };
+
+const renderAlbumItem: ListRenderItem<SpotifyAlbum> = ({ item }) => (
+    <TouchableOpacity onPress={() => console.log('Selected:', item.name)}>
+      <View style={styles.resultContainer}>
+        {item.thumbnail ? (
+          <Image 
+            source={{ uri: item.thumbnail }} 
+            style={styles.thumbnail} 
+          />
+        ) : (
+          // Fallback grey box if no image exists
+          <View style={[styles.thumbnail, styles.placeholder]} />
+        )}
+        <View style={styles.textContainer}>
+          <Text style={styles.albumName}>{item.name}</Text>
+          <Text style={styles.artistName}>{item.artist}</Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
 
   const handleAddEntry = () => {
     navigation.navigate('AddEntry');
@@ -23,9 +55,30 @@ export const AlbumDiaryScreen: React.FC<AlbumDiaryScreenProps> = ({ route, navig
   return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.addButton} onPress={handleAddEntry}>
+          {/* <TouchableOpacity style={styles.addButton} onPress={handleAddEntry}>
             <Text style={styles.addButtonText}>Log New Record</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
+          <TextInput
+            placeholder="Search for an album..."
+            value={query}
+            onChangeText={setQuery}
+            onSubmitEditing={handleSearch}
+            style={styles.searchInput}
+            returnKeyType="search" 
+            autoCapitalize="none"
+          />
+
+          <FlatList
+            data={results}
+            keyExtractor={(item) => item.id}
+            renderItem={renderAlbumItem}
+            // Optional: Handle empty state
+            ListEmptyComponent={
+              query.length > 0 && results.length === 0 ? (
+                <Text style={styles.emptyText}>No albums found</Text>
+              ) : null
+            }
+          />
         </View>
 
         {entries.length === 0 ? (
@@ -97,4 +150,38 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999',
   },
+
+searchInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    marginBottom: 20,
+    borderRadius: 8,
+  },
+  resultContainer: {
+    flexDirection: 'row',
+    marginBottom: 15,
+    alignItems: 'center',
+  },
+  thumbnail: {
+    width: 50,
+    height: 50,
+    borderRadius: 4,
+  },
+  placeholder: {
+    backgroundColor: '#e1e1e1',
+  },
+  textContainer: {
+    marginLeft: 10,
+    justifyContent: 'center',
+    flex: 1, // Ensures text takes up remaining width
+  },
+  albumName: {
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  artistName: {
+    color: 'gray',
+    fontSize: 14,
+  }
 });
