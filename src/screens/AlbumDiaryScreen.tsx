@@ -1,10 +1,9 @@
 import React, {useState} from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Image, ListRenderItem } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Image, ListRenderItem, ActivityIndicator, Keyboard } from 'react-native';
 import { useDiary } from '../context/DiaryContext';
 import { AlbumCard } from '../components/Cards/AlbumCard';
 import { Album, DiaryEntry } from '../types';
 import { searchAlbums } from '../services/SpotifyService';
-import { SearchBar } from 'react-native-screens';
 import { SpotifyAlbum } from '../types/spotifyTypes';
 
 interface AlbumDiaryScreenProps {
@@ -16,11 +15,21 @@ export const AlbumDiaryScreen: React.FC<AlbumDiaryScreenProps> = ({ route, navig
   const { entries } = useDiary();
   const [query  , setQuery] = useState<string>('');
   const [results, setResults] = useState<SpotifyAlbum[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleSearch = async () => {
-    if (query.length < 3) {
-      const albums = await searchAlbums(query);
-      setResults(albums);
+    Keyboard.dismiss();
+
+    if (query.length > 0) {
+        setLoading(true);
+        try {
+          const albums = await searchAlbums(query);
+          setResults(albums);
+        } catch (error) {
+          console.error('Error searching albums:', error);
+        } finally {
+          setLoading(false);
+        }
     }
   };
 
@@ -33,7 +42,6 @@ const renderAlbumItem: ListRenderItem<SpotifyAlbum> = ({ item }) => (
             style={styles.thumbnail} 
           />
         ) : (
-          // Fallback grey box if no image exists
           <View style={[styles.thumbnail, styles.placeholder]} />
         )}
         <View style={styles.textContainer}>
@@ -44,10 +52,6 @@ const renderAlbumItem: ListRenderItem<SpotifyAlbum> = ({ item }) => (
     </TouchableOpacity>
   );
 
-  const handleAddEntry = () => {
-    navigation.navigate('AddEntry');
-  };
-
   const handleViewEntry = (entry: DiaryEntry) => {
     navigation.navigate('AlbumDetail', { entryId: entry.id });
   };
@@ -55,9 +59,6 @@ const renderAlbumItem: ListRenderItem<SpotifyAlbum> = ({ item }) => (
   return (
       <View style={styles.container}>
         <View style={styles.header}>
-          {/* <TouchableOpacity style={styles.addButton} onPress={handleAddEntry}>
-            <Text style={styles.addButtonText}>Log New Record</Text>
-          </TouchableOpacity> */}
           <TextInput
             placeholder="Search for an album..."
             value={query}
@@ -66,19 +67,34 @@ const renderAlbumItem: ListRenderItem<SpotifyAlbum> = ({ item }) => (
             style={styles.searchInput}
             returnKeyType="search" 
             autoCapitalize="none"
+            autoCorrect={false}
           />
 
-          <FlatList
-            data={results}
-            keyExtractor={(item) => item.id}
-            renderItem={renderAlbumItem}
-            // Optional: Handle empty state
-            ListEmptyComponent={
-              query.length > 0 && results.length === 0 ? (
-                <Text style={styles.emptyText}>No albums found</Text>
-              ) : null
-            }
-          />
+          <TouchableOpacity 
+            style={styles.searchButton} 
+            onPress={handleSearch}
+            disabled={loading}
+          >
+            <Text style={styles.searchButtonText}>
+              {loading ? '...' : 'Search'}
+            </Text>
+          </TouchableOpacity>
+
+          {loading ? (
+            <ActivityIndicator size="large" color="#0000ff" style={{ marginTop: 20 }} />
+          ) : (
+            <FlatList
+              data={results}
+              keyExtractor={(item) => item.id}
+              renderItem={renderAlbumItem}
+
+              ListEmptyComponent={
+                query.length > 0 && results.length === 0 ? (
+                  <Text style={styles.emptyText}>No albums found</Text>
+                ) : null
+              }
+            />
+          )}
         </View>
 
         {entries.length === 0 ? (
@@ -183,5 +199,18 @@ searchInput: {
   artistName: {
     color: 'gray',
     fontSize: 14,
-  }
+  },
+  searchButton: {
+    backgroundColor: '#007AFF', // Standard iOS Blue
+    paddingHorizontal: 20,
+    height: 50,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  searchButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
 });
