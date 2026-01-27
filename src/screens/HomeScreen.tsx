@@ -15,7 +15,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Recordbox</Text>
+        <Text style={styles.headerTitle}>Turntable</Text>
       </View>
       <HomePageItemCard
         item={{title: "Album Diary", description: "View and manage your album diary"}}
@@ -37,7 +37,8 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: '#fff',
     paddingHorizontal: 16,
-    paddingVertical: 50,
+    paddingTop: 50,
+    paddingBottom: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
     flexDirection: 'row',

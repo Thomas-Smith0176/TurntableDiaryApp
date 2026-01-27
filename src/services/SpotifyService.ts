@@ -46,6 +46,7 @@ export const searchAlbums = async (query: string): Promise<SpotifyAlbum[]> => {
             releaseDate: album.release_date,
             artwork: album.images?.[0]?.url,
             thumbnail: album.images?.[1]?.url || album.images?.[0]?.url,
+            url: album.external_urls?.spotify,
         }));
     } catch (error) {
         console.error('Error searching albums:', error);

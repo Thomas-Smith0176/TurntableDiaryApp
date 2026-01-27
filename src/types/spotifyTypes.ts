@@ -5,4 +5,5 @@ export interface SpotifyAlbum {
     releaseDate: string;
     artwork: string | undefined;
     thumbnail: string | undefined;
+    url: string | undefined;
 }

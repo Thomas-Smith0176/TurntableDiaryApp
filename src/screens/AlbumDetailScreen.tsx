@@ -7,10 +7,7 @@ interface AlbumDetailScreenProps {
   navigation: any;
 };
 
-export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({
-  route,
-  navigation,
-}) => {
+export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, navigation }) => {
   const { entryId } = route.params;
   const { getEntryById, updateEntry, deleteEntry } = useDiary();
   const entry = getEntryById(entryId);

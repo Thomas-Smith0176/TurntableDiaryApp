@@ -33,8 +33,14 @@ export const AlbumDiaryScreen: React.FC<AlbumDiaryScreenProps> = ({ route, navig
     }
   };
 
+  const handleSelectResult = (album: SpotifyAlbum) => {
+    console.log('Selected album:', album);
+    // Future: Navigate to add entry screen with selected album details
+    navigation.navigate('AddEntry', { selectedAlbum: album });
+  }
+
 const renderAlbumItem: ListRenderItem<SpotifyAlbum> = ({ item }) => (
-    <TouchableOpacity onPress={() => console.log('Selected:', item.name)}>
+    <TouchableOpacity onPress={() => handleSelectResult(item)}>
       <View style={styles.resultContainer}>
         {item.thumbnail ? (
           <Image 
@@ -58,6 +64,7 @@ const renderAlbumItem: ListRenderItem<SpotifyAlbum> = ({ item }) => (
 
   return (
       <View style={styles.container}>
+        {/* Fixed Search Bar */}
         <View style={styles.header}>
           <TextInput
             placeholder="Search for an album..."
@@ -79,41 +86,53 @@ const renderAlbumItem: ListRenderItem<SpotifyAlbum> = ({ item }) => (
               {loading ? '...' : 'Search'}
             </Text>
           </TouchableOpacity>
-
-          {loading ? (
-            <ActivityIndicator size="large" color="#0000ff" style={{ marginTop: 20 }} />
-          ) : (
-            <FlatList
-              data={results}
-              keyExtractor={(item) => item.id}
-              renderItem={renderAlbumItem}
-
-              ListEmptyComponent={
-                query.length > 0 && results.length === 0 ? (
-                  <Text style={styles.emptyText}>No albums found</Text>
-                ) : null
-              }
-            />
-          )}
         </View>
 
-        {entries.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>No albums logged yet</Text>
-            <Text style={styles.emptySubtext}>Start by adding your first album!</Text>
-          </View>
-        ) : (
-          <FlatList
-            data={entries}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <AlbumCard
-                entry={item}
-                onPress={() => handleViewEntry(item)}
+        {/* Search Results*/}
+        {results.length > 0 || loading ? (
+          <View style={styles.searchResultsContainer}>
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#0000ff" />
+              </View>
+            ) : (
+              <FlatList
+                data={results}
+                keyExtractor={(item) => item.id}
+                renderItem={renderAlbumItem}
+                contentContainerStyle={styles.resultsListContent}
+                ListEmptyComponent={
+                  results.length === 0 ? (
+                    <Text style={styles.emptyText}>No albums found</Text>
+                  ) : null
+                }
               />
             )}
-            contentContainerStyle={styles.listContent}
-          />
+          </View>
+        ) : null}
+
+        {/* Diary Entries - Only show when no search results */}
+        {results.length === 0 && !loading && (
+          <>
+            {entries.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyText}>No albums logged yet</Text>
+                <Text style={styles.emptySubtext}>Start by adding your first album!</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={entries}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <AlbumCard
+                    entry={item}
+                    onPress={() => handleViewEntry(item)}
+                  />
+                )}
+                contentContainerStyle={styles.listContent}
+              />
+            )}
+          </>
         )}
       </View>
      )
@@ -127,12 +146,13 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: '#fff',
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 8,
   },
   headerTitle: {
     fontSize: 24,
@@ -166,18 +186,46 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999',
   },
-
-searchInput: {
+  searchInput: {
+    flex: 1,
     borderWidth: 1,
     borderColor: '#ccc',
     padding: 10,
-    marginBottom: 20,
     borderRadius: 8,
+  },
+  searchButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  searchButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  searchResultsContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  resultsListContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   resultContainer: {
     flexDirection: 'row',
     marginBottom: 15,
     alignItems: 'center',
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
   },
   thumbnail: {
     width: 50,
@@ -190,7 +238,7 @@ searchInput: {
   textContainer: {
     marginLeft: 10,
     justifyContent: 'center',
-    flex: 1, // Ensures text takes up remaining width
+    flex: 1,
   },
   albumName: {
     fontWeight: 'bold',
@@ -199,18 +247,5 @@ searchInput: {
   artistName: {
     color: 'gray',
     fontSize: 14,
-  },
-  searchButton: {
-    backgroundColor: '#007AFF', // Standard iOS Blue
-    paddingHorizontal: 20,
-    height: 50,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  searchButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
   },
 });

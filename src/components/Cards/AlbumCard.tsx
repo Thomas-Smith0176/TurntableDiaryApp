@@ -14,9 +14,9 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({ entry, onPress }) => {
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
-      {entry.album.coverImageUrl ? (
+      {entry.album.artwork ? (
         <Image
-          source={{ uri: entry.album.coverImageUrl }}
+          source={{ uri: entry.album.artwork }}
           style={styles.coverImage}
         />
       ) : (

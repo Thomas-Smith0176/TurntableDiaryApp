@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, Linking, Image} from 'react-native';
 import { useDiary } from '../context/DiaryContext';
 import { DiaryEntry, Album } from '../types';
 import { CrossfaderSlider } from '../components/Sliders/CrossfaderSlider';
@@ -8,28 +8,19 @@ interface AddEntryScreenProps {
   navigation: any;
 }
 
-export const AddEntryScreen: React.FC<AddEntryScreenProps> = ({ navigation }) => {
+export const AddEntryScreen: React.FC<AddEntryScreenProps> = ({ route, navigation }) => {
+  const { selectedAlbum } = route.params;
   const { addEntry } = useDiary();
-  const [albumTitle, setAlbumTitle] = useState('');
-  const [artist, setArtist] = useState('');
-  const [genre, setGenre] = useState('');
   const [review, setReview] = useState('');
   const [rating, setRating] = useState(5);
-  const [totalTracks, setTotalTracks] = useState('');
 
   const handleAddEntry = () => {
-    if (!albumTitle.trim() || !artist.trim()) {
-      Alert.alert('Error', 'Please fill in album title and artist');
-      return;
-    }
-
     const album: Album = {
       id: Math.random().toString(36).substr(2, 9),
-      title: albumTitle,
-      artist: artist,
-      genre: genre,
-      releaseDate: new Date().toISOString().split('T')[0],
-      totalTracks: parseInt(totalTracks) || 0,
+      title: selectedAlbum?.name || albumTitle,
+      artist: selectedAlbum?.artist || artist,
+      releaseDate: selectedAlbum?.releaseDate || new Date().toISOString().split('T')[0],
+      artwork: selectedAlbum?.artwork || artwork,
     };
 
     const entry: DiaryEntry = {
@@ -50,50 +41,22 @@ export const AddEntryScreen: React.FC<AddEntryScreenProps> = ({ navigation }) =>
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.form}>
+      <View style={styles.page}>
         <View style={styles.section}>
-          <Text style={styles.label}>Title *</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter album title"
-            value={albumTitle}
-            onChangeText={setAlbumTitle}
-            placeholderTextColor="#bbb"
-          />
+          <Text style={styles.title}>{selectedAlbum?.name}</Text>
+        </View>
+
+        <Image source={{ uri: selectedAlbum?.artwork }} style={styles.artwork} />
+        <View style={styles.section}>
+          <Text style={styles.details}>{selectedAlbum?.artist} - {selectedAlbum?.releaseDate || 'Release Date'}</Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.label}>Artist *</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter artist name"
-            value={artist}
-            onChangeText={setArtist}
-            placeholderTextColor="#bbb"
-          />
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.label}>Genre</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="e.g., Rock, Hip-Hop, Jazz"
-            value={genre}
-            onChangeText={setGenre}
-            placeholderTextColor="#bbb"
-          />
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.label}>Total Tracks</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Number of tracks"
-            value={totalTracks}
-            onChangeText={setTotalTracks}
-            keyboardType="numeric"
-            placeholderTextColor="#bbb"
-          />
+          <TouchableOpacity onPress={() => Linking.openURL(selectedAlbum?.url)}>
+            <View style={styles.submitButton}>
+              <Text style={styles.submitButtonText}>Listen here</Text>
+            </View>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
@@ -133,7 +96,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
-  form: {
+  page: {
     padding: 16,
   },
   section: {
@@ -143,6 +106,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
+  },
+  title: {
+    fontSize: 34,
+    fontWeight: 'bold',
+    margin: 8,
+    fontFamily: 'Gothic',
+  },
+  details: {
+    fontSize: 24,
+    fontWeight: '600',
+    margin: 8,
   },
   input: {
     backgroundColor: '#fff',
@@ -156,7 +130,10 @@ const styles = StyleSheet.create({
   reviewInput: {
     height: 100,
   },
-
+  artwork: {
+    width: '100%',
+    height: '350',
+  },
   submitButton: {
     backgroundColor: '#007AFF',
     paddingVertical: 14,

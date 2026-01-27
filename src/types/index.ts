@@ -3,9 +3,7 @@ export interface Album {
   title: string;
   artist: string;
   releaseDate: string;
-  genre: string;
-  coverImageUrl?: string;
-  totalTracks: number;
+  artwork?: string;
 }
 
 export interface DiaryEntry {
