@@ -1,29 +1,54 @@
 import {SpotifyAlbum} from '../types/spotifyTypes';
-import { createClient } from '@supabase/supabase-js';
 import Config from 'react-native-config';
 
-console.log('--- ENV CHECK ---');
-console.log('Config Object:', Config); 
-console.log('Supabase URL:', Config.SUPABASE_URL);
+export const searchAlbums = async (query: string): Promise<SpotifyAlbum[]> => {
+    try {
+        const supabaseUrl = Config.SUPABASE_URL;
+        const supabaseAnonKey = Config.SUPABASE_ANON_KEY;
 
-const supabase = createClient(
-  Config.SUPABASE_URL,
-  Config.SUPABASE_ANON_KEY
-);
+        if (!supabaseUrl || !supabaseAnonKey) {
+            console.error('Missing Supabase configuration');
+            return [];
+        }
 
-export const searchAlbums = async (query: string) => {
-    const { data, error } = await supabase.functions.invoke('search-spotify', {
-        body: { query },
-    });
-  
-    if (error) return [];
+        console.log('Searching for:', query);
 
-    return data.albums.items.map((album: SpotifyAlbum) => ({
-        id: album.id,
-        name: album.name,
-        artist: album.artist,
-        releaseDate: album.releaseDate,
-        artwork: album.artwork,
-        thumbnail: album.thumbnail
-    }))
+        const response = await fetch(
+            `${supabaseUrl}/functions/v1/search-spotify`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${supabaseAnonKey}`,
+                },
+                body: JSON.stringify({ query }),
+            }
+        );
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Spotify search error:', `${response.status}: ${errorText}`);
+            return [];
+        }
+
+        const data = await response.json();
+
+        // Handle the response data structure
+        if (!data || !Array.isArray(data)) {
+            console.warn('Unexpected response format from Spotify search:', data);
+            return [];
+        }
+
+        return data.map((album: any) => ({
+            id: album.id,
+            name: album.name,
+            artist: album.artists?.[0]?.name || 'Unknown Artist',
+            releaseDate: album.release_date,
+            artwork: album.images?.[0]?.url,
+            thumbnail: album.images?.[1]?.url || album.images?.[0]?.url,
+        }));
+    } catch (error) {
+        console.error('Error searching albums:', error);
+        return [];
+    }
 };
