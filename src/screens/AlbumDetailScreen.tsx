@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, Image } from 'react-native';
 import { useDiary } from '../context/DiaryContext';
+import { CrossfaderSlider } from '../components/Sliders/CrossfaderSlider';
 
 interface AlbumDetailScreenProps {
   route: any;
@@ -55,6 +56,7 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.albumTitle}>{entry.album.title}</Text>
+        <Image source={{ uri: entry.album?.artwork }} style={styles.artwork} />
         <Text style={styles.artist}>{entry.album.artist}</Text>
         {entry.album.genre && (
           <Text style={styles.genre}>{entry.album.genre}</Text>
@@ -64,7 +66,7 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
       <View style={styles.section}>
         <View style={styles.ratingContainer}>
           <Text style={styles.ratingLabel}>Rating</Text>
-          {isEditing ? (
+          {/* {isEditing ? (
             <View style={styles.ratingButtons}>
               {[1, 2, 3, 4, 5].map(num => (
                 <TouchableOpacity
@@ -83,7 +85,13 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
             <Text style={styles.ratingDisplay}>
               {'⭐'.repeat(rating)}{'☆'.repeat(5 - rating)}
             </Text>
-          )}
+          )} */}
+          <CrossfaderSlider
+            value={rating}
+            onValueChange={setRating}
+            min={1}
+            max={10}
+          />
         </View>
       </View>
 
@@ -185,6 +193,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     marginBottom: 4,
+  },
+  artwork: {
+    width: '100%',
+    height: '350',
   },
   genre: {
     fontSize: 14,

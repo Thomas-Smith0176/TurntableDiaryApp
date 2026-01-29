@@ -45,7 +45,6 @@ export const AddEntryScreen: React.FC<AddEntryScreenProps> = ({ route, navigatio
         <View style={styles.section}>
           <Text style={styles.title}>{selectedAlbum?.name}</Text>
         </View>
-
         <Image source={{ uri: selectedAlbum?.artwork }} style={styles.artwork} />
         <View style={styles.section}>
           <Text style={styles.details}>{selectedAlbum?.artist} - {selectedAlbum?.releaseDate || 'Release Date'}</Text>
