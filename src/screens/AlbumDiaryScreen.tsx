@@ -12,7 +12,7 @@ interface AlbumDiaryScreenProps {
 };
 
 export const AlbumDiaryScreen: React.FC<AlbumDiaryScreenProps> = ({ route, navigation }) => {
-  const { entries } = useDiary();
+  const { getAllEntries } = useDiary();
   const [query  , setQuery] = useState<string>('');
   const [results, setResults] = useState<SpotifyAlbum[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -37,6 +37,7 @@ export const AlbumDiaryScreen: React.FC<AlbumDiaryScreenProps> = ({ route, navig
     console.log('Selected album:', album);
     // Future: Navigate to add entry screen with selected album details
     navigation.navigate('AddEntry', { selectedAlbum: album });
+    setResults([]);
   }
 
 const renderAlbumItem: ListRenderItem<SpotifyAlbum> = ({ item }) => (
@@ -114,14 +115,14 @@ const renderAlbumItem: ListRenderItem<SpotifyAlbum> = ({ item }) => (
         {/* Diary Entries - Only show when no search results */}
         {results.length === 0 && !loading && (
           <>
-            {entries.length === 0 ? (
+            {getAllEntries().length === 0 ? (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyText}>No albums logged yet</Text>
                 <Text style={styles.emptySubtext}>Start by adding your first album!</Text>
               </View>
             ) : (
               <FlatList
-                data={entries}
+                data={getAllEntries()}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
                   <AlbumCard

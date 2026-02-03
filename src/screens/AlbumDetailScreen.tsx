@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Pressable, Alert, TextInput, Image } from 'react-native';
 import { useDiary } from '../context/DiaryContext';
 import { CrossfaderSlider } from '../components/Sliders/CrossfaderSlider';
+import EditIcon from '../icons/pencil-edit-button.svg';
+import DateTimePicker, { DateType, useDefaultStyles } from 'react-native-ui-datepicker';
 
 interface AlbumDetailScreenProps {
   route: any;
@@ -13,8 +15,10 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
   const { getEntryById, updateEntry, deleteEntry } = useDiary();
   const entry = getEntryById(entryId);
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingDate, setIsEditingDate] = useState(false);
   const [review, setReview] = useState(entry?.review || '');
   const [rating, setRating] = useState(entry?.rating || 5);
+  const [selectedDate, setSelectedDate] = useState(entry?.dateListen || '');
 
   if (!entry) {
     return (
@@ -65,30 +69,12 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
 
       <View style={styles.section}>
         <View style={styles.ratingContainer}>
-          <Text style={styles.ratingLabel}>Rating</Text>
-          {/* {isEditing ? (
-            <View style={styles.ratingButtons}>
-              {[1, 2, 3, 4, 5].map(num => (
-                <TouchableOpacity
-                  key={num}
-                  style={[
-                    styles.ratingButton,
-                    rating === num && styles.ratingButtonActive,
-                  ]}
-                  onPress={() => setRating(num)}
-                >
-                  <Text style={styles.ratingButtonText}>{num}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          ) : (
-            <Text style={styles.ratingDisplay}>
-              {'⭐'.repeat(rating)}{'☆'.repeat(5 - rating)}
-            </Text>
-          )} */}
           <CrossfaderSlider
             value={rating}
-            onValueChange={setRating}
+            onValueChange={(value) => {
+              setRating(value);
+              setIsEditing(true);
+            }}
             min={1}
             max={10}
           />
@@ -96,7 +82,16 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Review</Text>
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>Review</Text>
+          {!isEditing && (
+            <TouchableOpacity
+            onPress={() => setIsEditing(true)}
+            >
+              <Image source={require('../icons/edit-icon.png')} width={16} height={16} style={styles.editIcon} />
+            </TouchableOpacity>
+          )}
+        </View>
         {isEditing ? (
           <TextInput
             style={styles.reviewInput}
@@ -112,40 +107,38 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
       </View>
 
       <View style={styles.section}>
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>Listened on:</Text>
+          {!isEditingDate && (
+            <TouchableOpacity
+              onPress={() => setIsEditingDate(true)}
+            >
+              <Image source={require('../icons/edit-icon.png')} width={16} height={16} style={styles.editIcon} />
+            </TouchableOpacity>
+          )}
+          {isEditingDate && (
+            <DateTimePicker
+              mode="single"
+              date={selectedDate}
+              onChange={({ date }) => setSelectedDate(date)}
+              styles={useDefaultStyles()}
+            />
+          )}
+        </View>
         <Text style={styles.label}>Listened on:</Text>
         <Text style={styles.value}>
           {new Date(entry.dateListen).toLocaleDateString()}
         </Text>
-        {entry.album.totalTracks > 0 && (
-          <>
-            <Text style={styles.label}>Total Tracks:</Text>
-            <Text style={styles.value}>{entry.album.totalTracks}</Text>
-          </>
-        )}
       </View>
 
       <View style={styles.actions}>
         {!isEditing ? (
           <>
             <TouchableOpacity
-              style={[styles.button, styles.editButton]}
-              onPress={() => setIsEditing(true)}
-            >
-              <Text style={styles.buttonText}>Edit</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, styles.favoriteButton]}
-              onPress={toggleFavorite}
-            >
-              <Text style={styles.buttonText}>
-                {entry.isFavorite ? '❤️ Favorite' : '🤍 Add to Favorites'}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
               style={[styles.button, styles.deleteButton]}
               onPress={handleDelete}
             >
-              <Text style={styles.buttonText}>Delete</Text>
+              <Text style={styles.buttonText}>Remove from My Diary</Text>
             </TouchableOpacity>
           </>
         ) : (
@@ -271,6 +264,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     minHeight: 100,
   },
+  sectionContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   actions: {
     padding: 16,
     gap: 8,
@@ -280,12 +278,6 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     alignItems: 'center',
     marginBottom: 8,
-  },
-  editButton: {
-    backgroundColor: '#007AFF',
-  },
-  favoriteButton: {
-    backgroundColor: '#FF3B30',
   },
   saveButton: {
     backgroundColor: '#34C759',
@@ -300,5 +292,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  editIcon: {
+    width: 20,
+    height: 20,
+    opacity: 0.4,
   },
 });

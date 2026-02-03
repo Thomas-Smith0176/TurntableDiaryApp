@@ -35,11 +35,15 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return AlbumService.getEntryById(id);
   };
 
+  const getAllEntries = () => {
+    return AlbumService.getAllEntries();
+  };
+
   const averageRating = AlbumService.getAverageRating();
 
   return (
     <DiaryContext.Provider
-      value={{ entries, addEntry, updateEntry, deleteEntry, getEntryById, averageRating }}
+      value={{ entries, getAllEntries, addEntry, updateEntry, deleteEntry, getEntryById, averageRating }}
     >
       {children}
     </DiaryContext.Provider>
