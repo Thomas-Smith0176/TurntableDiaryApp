@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Pressable, Alert, TextInput, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Pressable, Alert, TextInput, Image, Modal } from 'react-native';
 import { useDiary } from '../context/DiaryContext';
 import { CrossfaderSlider } from '../components/Sliders/CrossfaderSlider';
 import EditIcon from '../icons/pencil-edit-button.svg';
@@ -18,7 +18,8 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
   const [isEditingDate, setIsEditingDate] = useState(false);
   const [review, setReview] = useState(entry?.review || '');
   const [rating, setRating] = useState(entry?.rating || 5);
-  const [selectedDate, setSelectedDate] = useState(entry?.dateListen || '');
+  const [dateListen, setDateListen] = useState(entry?.dateListen || '');
+  const defaultStyles = useDefaultStyles();
 
   if (!entry) {
     return (
@@ -29,9 +30,9 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
   }
 
   const handleUpdate = () => {
-    updateEntry(entryId, { review, rating });
+    updateEntry(entryId, { review, rating, dateListen});
     setIsEditing(false);
-    Alert.alert('Success', 'Album updated!');
+    Alert.alert('Success', 'Album details updated!');
   };
 
   const handleDelete = () => {
@@ -50,10 +51,6 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
         },
       ]
     );
-  };
-
-  const toggleFavorite = () => {
-    updateEntry(entryId, { isFavorite: !entry.isFavorite });
   };
 
   return (
@@ -106,6 +103,28 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
         )}
       </View>
 
+      {isEditing && (
+      <View style={styles.actions}>
+        <TouchableOpacity
+          style={[styles.button, styles.saveButton]}
+          onPress={handleUpdate}
+        >
+          <Text style={styles.buttonText}>Save Changes</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, styles.cancelButton]}
+          onPress={() => {
+            setIsEditing(false);
+            setReview(entry.review);
+            setRating(entry.rating);
+            setDateListen(entry.dateListen);
+          }}
+        >
+          <Text style={styles.buttonText}>Cancel</Text>
+        </TouchableOpacity>
+      </View>
+      )}
+
       <View style={styles.section}>
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Listened on:</Text>
@@ -116,51 +135,43 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
               <Image source={require('../icons/edit-icon.png')} width={16} height={16} style={styles.editIcon} />
             </TouchableOpacity>
           )}
-          {isEditingDate && (
-            <DateTimePicker
-              mode="single"
-              date={selectedDate}
-              onChange={({ date }) => setSelectedDate(date)}
-              styles={useDefaultStyles()}
-            />
-          )}
         </View>
         <Text style={styles.label}>Listened on:</Text>
         <Text style={styles.value}>
-          {new Date(entry.dateListen).toLocaleDateString()}
+          {new Date(dateListen).toLocaleDateString()}
         </Text>
       </View>
 
+      <Modal
+        visible={isEditingDate}
+        transparent={true}
+        animationType="fade"
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Date</Text>
+              <TouchableOpacity onPress={() => {setIsEditingDate(false); handleUpdate();}}>
+                <Text style={styles.modalCloseButton}>Done</Text>
+              </TouchableOpacity>
+            </View>
+            <DateTimePicker
+              mode="single"
+              date={dateListen}
+              onChange={({ date }) => setDateListen(date)}
+              styles={defaultStyles}
+            />
+          </View>
+        </View>
+      </Modal>
+
       <View style={styles.actions}>
-        {!isEditing ? (
-          <>
-            <TouchableOpacity
-              style={[styles.button, styles.deleteButton]}
-              onPress={handleDelete}
-            >
-              <Text style={styles.buttonText}>Remove from My Diary</Text>
-            </TouchableOpacity>
-          </>
-        ) : (
-          <>
-            <TouchableOpacity
-              style={[styles.button, styles.saveButton]}
-              onPress={handleUpdate}
-            >
-              <Text style={styles.buttonText}>Save Changes</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, styles.cancelButton]}
-              onPress={() => {
-                setIsEditing(false);
-                setReview(entry.review);
-                setRating(entry.rating);
-              }}
-            >
-              <Text style={styles.buttonText}>Cancel</Text>
-            </TouchableOpacity>
-          </>
-        )}
+        <TouchableOpacity
+          style={[styles.button, styles.deleteButton]}
+          onPress={handleDelete}
+        >
+          <Text style={styles.buttonText}>Remove from My Diary</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -297,5 +308,35 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     opacity: 0.4,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingTop: 16,
+    paddingBottom: 32,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  modalCloseButton: {
+    fontSize: 16,
+    color: '#0047FF',
+    fontWeight: '600',
   },
 });
