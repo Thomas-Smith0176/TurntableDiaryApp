@@ -1,55 +1,49 @@
-import { Album, DiaryEntry } from '../types';
+import { supabase } from "supabase/supabaseClient";
+import { Album } from "../types";
 
-// Mock data service - replace with real API calls or local storage
-class AlbumService {
-  private diaryEntries: DiaryEntry[] = [];
+export const getUserAlbums = async (): Promise<Album[]> => {
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not logged in');
 
-  // Add a new album entry to diary
-  addEntry(entry: DiaryEntry): void {
-    this.diaryEntries.push(entry);
-  }
+        const { data: albums, error: albumsError } = await supabase
+            .from('albums')
+            .select(`id, title, artist, release_date, artwork_url, album_url, latest_rating`)
+            .eq('user_id', user.id);
 
-  // Get all diary entries
-  getAllEntries(): DiaryEntry[] {
-    return this.diaryEntries;
-  }
+        if (albumsError) throw albumsError;
 
-  // Get entry by ID
-  getEntryById(id: string): DiaryEntry | undefined {
-    return this.diaryEntries.find(entry => entry.id === id);
-  }
+        const mapped: Album[] = albums.map((row: any) => {
+            return {
+                id: row.id,
+                title: row.title,
+                artist: row.artist,
+                releaseDate: row.release_date,
+                artwork: row.artwork_url ?? undefined,
+                url: row.album_url ?? undefined,
+                latestRating: row.latest_rating ?? 0,
+            };
+        });
 
-  // Update an entry
-  updateEntry(id: string, updatedEntry: Partial<DiaryEntry>): void {
-    const index = this.diaryEntries.findIndex(entry => entry.id === id);
-    if (index !== -1) {
-      this.diaryEntries[index] = { ...this.diaryEntries[index], ...updatedEntry };
+        return mapped;
+
+    } catch (error) {
+        console.error('Error fetching user albums:', error);
+        return [];
     }
-  }
+};
 
-  // Delete an entry
-  deleteEntry(id: string): void {
-    this.diaryEntries = this.diaryEntries.filter(entry => entry.id !== id);
-  }
-
-  // Get average rating for all albums
-  getAverageRating(): number {
-    if (this.diaryEntries.length === 0) return 0;
-    const totalRating = this.diaryEntries.reduce((sum, entry) => sum + entry.rating, 0);
-    return totalRating / this.diaryEntries.length;
-  }
-
-  // Get entries sorted by date
-  getEntriesByDate(): DiaryEntry[] {
-    return [...this.diaryEntries].sort((a, b) => 
-      new Date(b.dateListen).getTime() - new Date(a.dateListen).getTime()
-    );
-  }
-
-  // Get entries by rating
-  getEntriesByRating(minRating: number): DiaryEntry[] {
-    return this.diaryEntries.filter(entry => entry.rating >= minRating);
-  }
-}
-
-export default new AlbumService();
+export const updateAlbumEntry = async (id: string, updates: Partial<{ latest_rating: number}>) => {
+    console.log('Attempting to update album entry with ID:', id, 'and updates:', updates);
+    try {
+        const { error } = await supabase
+            .from('albums')
+            .update(updates)
+            .eq('id', id);
+        if (error) throw error;
+        return { success: true };
+    } catch (error) {
+        console.error('Error updating album entry:', error);
+        return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+};

@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Pressable, Alert, TextInput, Image, Modal } from 'react-native';
 import { useDiary } from '../context/DiaryContext';
 import { CrossfaderSlider } from '../components/Sliders/CrossfaderSlider';
 import DateTimePicker, { DateType, useDefaultStyles } from 'react-native-ui-datepicker';
+import * as AlbumService from '../services/AlbumService';
+import Slider, { MarkerProps } from '@react-native-community/slider';
+import { getAverageColor } from '../components/Buttons/ButtonColour';
 
 interface AlbumDetailScreenProps {
   route: any;
@@ -13,11 +16,12 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
   const { entryId } = route.params;
   const { getEntryById, updateEntry, deleteEntry } = useDiary();
   const entry = getEntryById(entryId);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditingReview, setIsEditingReview] = useState(false);
   const [isEditingDate, setIsEditingDate] = useState(false);
   const [review, setReview] = useState(entry?.review || '');
   const [rating, setRating] = useState(entry?.rating || 5);
   const [dateListen, setDateListen] = useState(entry?.dateListen || '');
+  const [accentColor, setAccentColor] = useState('#ffffff');
   const defaultStyles = useDefaultStyles();
 
   if (!entry) {
@@ -30,8 +34,9 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
 
   const handleUpdate = () => {
     updateEntry(entryId, { review, rating, dateListen});
-    setIsEditing(false);
-    Alert.alert('Success', 'Album details updated!');
+    AlbumService.updateAlbumEntry(entry.album.id, { latest_rating: rating });
+    setIsEditingReview(false);
+    Alert.alert('Album details updated!');
   };
 
   const handleDelete = () => {
@@ -52,40 +57,51 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
     );
   };
 
+  useEffect(() => {
+    const updateTheme = async () => {
+      const color = await getAverageColor(entry.album.artwork);
+      setAccentColor(color);
+    };
+
+    updateTheme();
+  }, [entry.album.artwork]);
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.albumTitle}>{entry.album.title}</Text>
-        {entry.album?.artwork && <Image source={{ uri: entry.album.artwork }} style={styles.artwork} />}
-        <Text style={styles.artist}>{entry.album.artist}</Text>
+          {entry.album?.artwork && <Image source={{ uri: entry.album.artwork }} style={styles.artwork} />}
+          <Text style={styles.albumTitle}>{entry.album.title}</Text>
+          <Text style={styles.albumDetails}>{entry.album.artist}</Text>
+          <Text style={styles.albumDetails}>{entry.album.releaseDate.slice(8, 10)}/{entry.album.releaseDate.slice(5, 7)}/{entry.album.releaseDate.slice(0, 4)}</Text>        
       </View>
 
       <View style={styles.section}>
         <View style={styles.ratingContainer}>
-          <CrossfaderSlider
-            value={rating}
-            onValueChange={(value) => {
-              setRating(value);
-              setIsEditing(true);
-            }}
-            min={1}
-            max={10}
-          />
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Review</Text>
-          {!isEditing && (
-            <TouchableOpacity
-            onPress={() => setIsEditing(true)}
-            >
-              <Image source={require('../icons/edit-icon.png')} width={20} height={20} style={[styles.editIcon]} />
-            </TouchableOpacity>
+          <View style={styles.ratingDisplay}>
+            <Text style={{fontSize: 24}}>{rating}</Text>
+          </View>
+          {!isEditingReview && (
+          <TouchableOpacity onPress={() => setIsEditingReview(true)}>
+            <Image source={require('../icons/edit-icon.png')} width={20} height={20} style={[styles.editIcon]} />
+          </TouchableOpacity>
           )}
         </View>
-        {isEditing ? (
+
+        <View style={styles.reviewContainer}>
+        {isEditingReview ? (
+          <>
+          <Slider
+            style={styles.slider}
+            minimumValue={1}
+            maximumValue={10}
+            value={rating}
+            step={1}
+            minimumTrackTintColor="#151515"
+            thumbTintColor="#151515"
+            onValueChange={(value) => {
+              setRating(value);
+            }}
+            />
           <TextInput
             style={styles.reviewInput}
             multiline
@@ -93,13 +109,28 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
             value={review}
             onChangeText={setReview}
             textAlignVertical="top"
-          />
+            />
+          </>
         ) : (
-          <Text style={styles.reviewText}>{review || 'No review added'}</Text>
+          <>
+            <Text style={styles.reviewText}>{review || 'No review added'}</Text>
+          </>
         )}
+        </View>
+
+        <View style={styles.dateContainer}>
+          <Text style={styles.value}>Listened on: {new Date(dateListen).toLocaleDateString()}</Text>
+          {(!isEditingDate && isEditingReview) && (
+            <TouchableOpacity
+              onPress={() => setIsEditingDate(true)}
+            >
+              <Image source={require('../icons/edit-icon.png')} width={20} height={20} style={[styles.editIcon]} />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
-      {isEditing && (
+      {isEditingReview && (
       <View style={styles.actions}>
         <TouchableOpacity
           style={[styles.button, styles.saveButton]}
@@ -110,7 +141,7 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
         <TouchableOpacity
           style={[styles.button, styles.cancelButton]}
           onPress={() => {
-            setIsEditing(false);
+            setIsEditingReview(false);
             setReview(entry.review);
             setRating(entry.rating);
             setDateListen(entry.dateListen);
@@ -121,23 +152,6 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
       </View>
       )}
 
-      <View style={styles.section}>
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Listened on:</Text>
-          {!isEditingDate && (
-            <TouchableOpacity
-              onPress={() => setIsEditingDate(true)}
-            >
-              <Image source={require('../icons/edit-icon.png')} width={20} height={20} style={[styles.editIcon]} />
-            </TouchableOpacity>
-          )}
-        </View>
-        <Text style={styles.label}>Listened on:</Text>
-        <Text style={styles.value}>
-          {new Date(dateListen).toLocaleDateString()}
-        </Text>
-      </View>
-
       <Modal
         visible={isEditingDate}
         transparent={true}
@@ -147,7 +161,7 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
           <View style={styles.modalContainer}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Select Date</Text>
-              <TouchableOpacity onPress={() => {setIsEditingDate(false); handleUpdate();}}>
+              <TouchableOpacity onPress={() => {setIsEditingDate(false);}}>
                 <Text style={styles.modalCloseButton}>Done</Text>
               </TouchableOpacity>
             </View>
@@ -180,19 +194,22 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#fff',
-    padding: 16,
+    paddingBottom: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
   },
   albumTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 4,
+    marginTop: 15,
+    paddingLeft: 15,
   },
-  artist: {
+  albumDetails: {
     fontSize: 16,
     color: '#666',
+    marginTop: 15,
     marginBottom: 4,
+    paddingLeft: 15,
   },
   artwork: {
     width: '100%',
@@ -225,15 +242,28 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   ratingContainer: {
-    justifyContent: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
-  ratingLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 12,
+  reviewContainer: {
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  dateContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   ratingDisplay: {
-    fontSize: 24,
+    width: 50,
+    height: 50,
+    borderWidth: 2,
+    borderRadius: 25,
+    borderColor: '#101010',
+    marginBottom: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    fontWeight: 'bold',
   },
   ratingButtons: {
     flexDirection: 'row',
@@ -270,11 +300,17 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
     fontSize: 14,
     minHeight: 100,
+    width: '100%',
+    marginTop: 15,
+    marginBottom: 15,
   },
-  sectionContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  slider: {
+    width: '100%', 
+    height: 40, 
+    backgroundColor: '#f9f9f9',
+    borderWidth: 1,
+    borderRadius: 6,
+    borderColor: '#e0e0e0',
   },
   actions: {
     padding: 16,
@@ -334,5 +370,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#0047FF',
     fontWeight: '600',
+  },
+  inner: {
+    position: 'absolute',
+    width: 3,
+    height: 40,
+    backgroundColor: '#999',
+    top: '150%',
+    marginTop: -8,
   },
 });

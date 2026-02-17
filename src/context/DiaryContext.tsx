@@ -1,12 +1,16 @@
-import React, { createContext, useContext, useState } from 'react';
-import { DiaryEntry } from '../types';
-import AlbumService from '../services/AlbumService';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import { Album, DiaryEntry } from '../types';
+import * as DiaryService from '../services/DiaryService';
+import * as AlbumService from '../services/AlbumService';
 
 interface DiaryContextType {
   entries: DiaryEntry[];
-  addEntry: (entry: DiaryEntry) => void;
-  updateEntry: (id: string, entry: Partial<DiaryEntry>) => void;
-  deleteEntry: (id: string) => void;
+  albums: Album[];
+  loadEntries: () => Promise<void>;
+  loadAlbums: () => Promise<void>;
+  addEntry: (entry: any) => Promise<void>;
+  updateEntry: (id: string, entry: Partial<DiaryEntry>) => Promise<void>;
+  deleteEntry: (id: string) => Promise<void>;
   getEntryById: (id: string) => DiaryEntry | undefined;
   getAllEntries: () => DiaryEntry[];
   averageRating: number;
@@ -16,35 +20,56 @@ const DiaryContext = createContext<DiaryContextType | undefined>(undefined);
 
 export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
+  const [albums, setAlbums] = useState<Album[]>([]);
 
-  const addEntry = (entry: DiaryEntry) => {
-    AlbumService.addEntry(entry);
-    setEntries([...AlbumService.getAllEntries()]);
+  const loadEntries = async () => {
+    const list = await DiaryService.getDiaryEntries();
+    setEntries(list);
   };
 
-  const updateEntry = (id: string, entry: Partial<DiaryEntry>) => {
-    AlbumService.updateEntry(id, entry);
-    setEntries([...AlbumService.getAllEntries()]);
+  const loadAlbums = async () => {
+    const list = await AlbumService.getUserAlbums();
+    setAlbums(list);
+  }
+
+  useEffect(() => {
+    loadEntries();
+  }, []);
+
+  const addEntry = async (entry: any) => {
+    await DiaryService.saveDiaryEntry(entry);
+    await loadEntries();
   };
 
-  const deleteEntry = (id: string) => {
-    AlbumService.deleteEntry(id);
-    setEntries([...AlbumService.getAllEntries()]);
+  const updateEntry = async (id: string, entry: Partial<DiaryEntry>) => {
+    await DiaryService.updateDiaryEntry(id, {
+      rating: entry.rating,
+      review: entry.review,
+      date_listened: (entry as any).dateListen,
+    } as any);
+    await loadEntries();
+  };
+
+  const deleteEntry = async (id: string) => {
+    await DiaryService.deleteDiaryEntry(id);
+    await loadEntries();
   };
 
   const getEntryById = (id: string) => {
-    return AlbumService.getEntryById(id);
+    return entries.find(e => e.id === id);
   };
 
-  const getAllEntries = () => {
-    return AlbumService.getAllEntries();
-  };
+  const getAllEntries = () => entries;
 
-  const averageRating = AlbumService.getAverageRating();
+  const averageRating = useMemo(() => {
+    if (entries.length === 0) return 0;
+    const total = entries.reduce((s, e) => s + (e.rating || 0), 0);
+    return total / entries.length;
+  }, [entries]);
 
   return (
     <DiaryContext.Provider
-      value={{ entries, getAllEntries, addEntry, updateEntry, deleteEntry, getEntryById, averageRating }}
+      value={{ entries, albums, loadEntries, loadAlbums, getAllEntries, addEntry, updateEntry, deleteEntry, getEntryById, averageRating }}
     >
       {children}
     </DiaryContext.Provider>

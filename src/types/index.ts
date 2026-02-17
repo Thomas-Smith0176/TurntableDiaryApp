@@ -4,6 +4,8 @@ export interface Album {
   artist: string;
   releaseDate: string;
   artwork?: string;
+  url?: string;
+  latestRating: number;
 }
 
 export interface DiaryEntry {
@@ -13,9 +15,6 @@ export interface DiaryEntry {
   review: string;
   dateListen: string;
   createdAt: string;
-  updatedAt: string;
-  isFavorite: boolean;
-  tags?: string[];
 }
 
 export interface UserProfile {

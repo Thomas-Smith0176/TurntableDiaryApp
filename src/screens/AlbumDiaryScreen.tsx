@@ -1,10 +1,11 @@
-import React, {useState} from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Image, ListRenderItem, ActivityIndicator, Keyboard } from 'react-native';
 import { useDiary } from '../context/DiaryContext';
 import { AlbumCard } from '../components/Cards/AlbumCard';
 import { Album, DiaryEntry } from '../types';
 import { searchAlbums } from '../services/SpotifyService';
 import { SpotifyAlbum } from '../types/spotifyTypes';
+import { useFocusEffect } from '@react-navigation/native';
 
 interface AlbumDiaryScreenProps {
   route: any;
@@ -12,10 +13,16 @@ interface AlbumDiaryScreenProps {
 };
 
 export const AlbumDiaryScreen: React.FC<AlbumDiaryScreenProps> = ({ route, navigation }) => {
-  const { getAllEntries } = useDiary();
+  const { loadEntries, getAllEntries } = useDiary();
   const [query  , setQuery] = useState<string>('');
   const [results, setResults] = useState<SpotifyAlbum[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadEntries();
+    }, [])
+  );
 
   const handleSearch = async () => {
     Keyboard.dismiss();

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, PanResponder, Animated } from 'react-native';
 
 interface CrossfaderSliderProps {
@@ -14,12 +14,11 @@ export const CrossfaderSlider: React.FC<CrossfaderSliderProps> = ({
   min = 1,
   max = 10,
 }) => {
-  const sliderWidth = 280;
+  const sliderWidth = 300;
   const tickCount = (max - min) + 1;
-  const tickSpacing = sliderWidth / (tickCount - 1);
 
-  const pan = useRef(new Animated.ValueXY()).current;
   const [isDragging, setIsDragging] = useState(false);
+  const panX = useRef(new Animated.Value(((value - min) / (max - min)) * sliderWidth)).current;
 
   const panResponder = useRef(
     PanResponder.create({
@@ -30,18 +29,27 @@ export const CrossfaderSlider: React.FC<CrossfaderSliderProps> = ({
       },
       onPanResponderMove: (evt) => {
         const x = evt.nativeEvent.locationX;
-        const normalizedValue = (x / sliderWidth) * (max - min) + min;
-        const roundedValue = Math.round(normalizedValue);
-        const clampedValue = Math.max(min, Math.min(max, roundedValue));
-        onValueChange(clampedValue);
+        const clampedX = Math.max(0, Math.min(sliderWidth, x));
+        panX.setValue(clampedX);
       },
-      onPanResponderRelease: () => {
+      onPanResponderRelease: (evt) => {
+        const x = evt.nativeEvent.locationX;
+        const clampedX = Math.max(0, Math.min(sliderWidth, x));
+        const normalizedValue = (clampedX / sliderWidth) * (max - min) + min;
+        const roundedValue = Math.round(normalizedValue);
+        const finalValue = Math.max(min, Math.min(max, roundedValue));
+        onValueChange(finalValue);
         setIsDragging(false);
       },
     })
   ).current;
 
-  const sliderPosition = ((value - min) / (max - min)) * sliderWidth;
+  useEffect(() => {
+    if (!isDragging) {
+      const newPos = ((value - min) / (max - min)) * sliderWidth;
+      panX.setValue(newPos);
+    }
+  }, [value, isDragging]);
 
   return (
     <View style={styles.container}>
@@ -49,51 +57,40 @@ export const CrossfaderSlider: React.FC<CrossfaderSliderProps> = ({
         style={[styles.sliderTrack, { width: sliderWidth }]}
         {...panResponder.panHandlers}
       >
-        {/* Horizontal line */}
         <View style={styles.horizontalLine} />
-
-        {/* Tick marks */}
         {Array.from({ length: tickCount }).map((_, index) => {
           const tickPosition = (index / (tickCount - 1)) * sliderWidth;
-        if(index == 0 || index == tickCount - 1) {
+          if (index === 0 || index === tickCount - 1) {
             return (
-                <View
+              <View
                 key={index}
                 style={[
-                    styles.tallTick,
-                    {
-                        right: tickPosition - 1,
-                    },
+                  styles.tallTick,
+                  {
+                    left: tickPosition - 1,
+                  },
                 ]}
-                />
-            )}
-        return (
-          <View
-            key={index}
-            style={[
-              styles.tick,
-              {
-                left: tickPosition - 1,
-              },
-            ]}
-          />
-        )
-        })}
-            {/* <View
+              />
+            );
+          }
+          return (
+            <View
+              key={index}
               style={[
-                styles.tallTick,
+                styles.tick,
                 {
-                  right: sliderWidth /2,
+                  left: tickPosition - 1,
                 },
               ]}
-            /> */}
-
-        {/* Slider thumb */}
-        <View
+            />
+          );
+        })}
+        <Animated.View
           style={[
             styles.sliderThumb,
             {
-              left: sliderPosition - 8,
+              left: panX,
+              marginLeft: -8,
             },
           ]}
         />
@@ -107,52 +104,52 @@ export const CrossfaderSlider: React.FC<CrossfaderSliderProps> = ({
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 24,
   },
   sliderTrack: {
-    height: 50,
+    height: 80,
     justifyContent: 'center',
     position: 'relative',
     marginHorizontal: 16,
-    backgroundColor: '#eaeaea'
+    backgroundColor: '#f1f1f1'
   },
   horizontalLine: {
     position: 'absolute',
     width: '100%',
-    height: 2,
+    height: 4,
     backgroundColor: '#999',
     top: '50%',
-    marginTop: -1,
+    marginTop: -2,
   },
   tick: {
     position: 'absolute',
-    width: 2,
-    height: 10,
+    width: 3,
+    height: 16,
     backgroundColor: '#999',
     top: '50%',
-    marginTop: -5,
+    marginTop: -8,
   },
   tallTick: {
     position: 'absolute',
-    width: 2,
-    height: 50,
+    width: 3,
+    height: 80,
     backgroundColor: '#999',
     top: '50%',
-    marginTop: -25,
+    marginTop: -40,
   },
   sliderThumb: {
     position: 'absolute',
-    width: 16,
-    height: 40,
+    width: 24,
+    height: 56,
     backgroundColor: '#333',
-    borderRadius: 2,
+    borderRadius: 4,
     top: '50%',
-    marginTop: -20,
+    marginTop: -28,
   },
   valueText: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
-    marginTop: 12,
+    marginTop: 16,
     color: '#333',
   },
 });

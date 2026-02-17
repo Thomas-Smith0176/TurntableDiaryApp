@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, Linking, Image} from 'react-native';
-import { useDiary } from '../context/DiaryContext';
-import { DiaryEntry, Album } from '../types';
 import { CrossfaderSlider } from '../components/Sliders/CrossfaderSlider';
+import { useDiary } from '../context/DiaryContext';
+import * as AlbumService from '../services/AlbumService';
 
 interface AddEntryScreenProps {
   route: any;
@@ -11,31 +11,29 @@ interface AddEntryScreenProps {
 
 export const AddEntryScreen: React.FC<AddEntryScreenProps> = ({ route, navigation }) => {
   const { selectedAlbum } = route.params;
-  const { addEntry } = useDiary();
   const [review, setReview] = useState('');
   const [rating, setRating] = useState(5);
+  const [saving, setSaving] = useState(false);
+  const { addEntry } = useDiary();
 
-  const handleAddEntry = () => {
-    const album: Album = {
-      id: Math.random().toString(36).substr(2, 9),
-      title: selectedAlbum?.name || 'Unknown Album',
-      artist: selectedAlbum?.artist || 'Unknown Artist',
-      releaseDate: selectedAlbum?.releaseDate || new Date().toISOString().split('T')[0],
-      artwork: selectedAlbum?.artwork || undefined,
+  const handleAddEntry = async () => {
+    setSaving(true);
+    const entryPayload = {
+      spotifyId: selectedAlbum.id,
+      title: selectedAlbum.name,
+      artist: selectedAlbum.artist,
+      releaseDate: selectedAlbum.releaseDate,
+      artworkUrl: selectedAlbum.artwork || '',
+      rating: rating,
+      review: review,
+      dateListened: new Date().toISOString().split('T')[0],
     };
 
-    const entry: DiaryEntry = {
-      id: Math.random().toString(36).substr(2, 9),
-      album,
-      rating,
-      review,
-      dateListen: new Date().toISOString().split('T')[0],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      isFavorite: false,
-    };
-      
-    addEntry(entry);
+    await addEntry(entryPayload);
+    await AlbumService.updateAlbumEntry(selectedAlbum.id, { latest_rating: rating });
+
+    setSaving(false);
+
     Alert.alert('Success', 'Album added to your diary!');
     navigation.goBack();
   };

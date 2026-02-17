@@ -1,14 +1,23 @@
-import React from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useDiary } from '../context/DiaryContext';
+import { useFocusEffect } from '@react-navigation/native';
 
 export const ProfileScreen: React.FC = () => {
-  const { entries, averageRating } = useDiary();
+  const { albums, averageRating, loadAlbums } = useDiary();
 
-  const topRatedAlbums = [...entries]
-    .sort((a, b) => b.rating - a.rating)
+  const topRatedAlbums = [...albums]
+    .sort((a, b) => b.latestRating - a.latestRating)
     .slice(0, 5);
 
+  useFocusEffect(
+    useCallback(() => {
+      loadAlbums();
+    }, [])
+  );
+
+  console.log('Entries:', topRatedAlbums);
+  
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -17,7 +26,7 @@ export const ProfileScreen: React.FC = () => {
 
       <View style={styles.statsContainer}>
         <View style={styles.statBox}>
-          <Text style={styles.statNumber}>{entries.length}</Text>
+          <Text style={styles.statNumber}>{albums.length}</Text>
           <Text style={styles.statLabel}>Albums Logged</Text>
         </View>
         <View style={styles.statBox}>
@@ -29,13 +38,13 @@ export const ProfileScreen: React.FC = () => {
       {topRatedAlbums.length > 0 && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Top Rated Albums</Text>
-          {topRatedAlbums.map(entry => (
-            <View key={entry.id} style={styles.albumItem}>
+          {topRatedAlbums.map(album => (
+            <View key={album.id} style={styles.albumItem}>
               <View>
-                <Text style={styles.albumTitle}>{entry.album.title}</Text>
-                <Text style={styles.albumArtist}>{entry.album.artist}</Text>
+                <Text style={styles.albumTitle}>{album.title}</Text>
+                <Text style={styles.albumArtist}>{album.artist}</Text>
               </View>
-              <Text style={styles.rating}>{entry.rating.toFixed(1)}</Text>
+              <Text style={styles.rating}>{album.latestRating.toFixed(1)}</Text>
             </View>
           ))}
         </View>

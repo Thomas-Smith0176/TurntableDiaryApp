@@ -25,7 +25,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{user ? `${user.user_metadata.display_name.slice(0,1).toUpperCase() + user.user_metadata.display_name.slice(1)}'s` : 'My'} Turntable</Text>
+        <Text style={styles.headerTitle}>{user ? `${user.user_metadata.display_name.slice(0,1).toUpperCase() + user.user_metadata.display_name.slice(1)}'s` : 'My'} Jukebox</Text>
         <TouchableOpacity style={styles.addButton} onPress={handleSignOut}>
           <Text style={styles.addButtonText}>Sign Out</Text>
         </TouchableOpacity>
