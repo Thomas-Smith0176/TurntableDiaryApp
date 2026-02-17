@@ -1,0 +1,7 @@
+<svg viewBox="0 0 540 720" xmlns="http://www.w3.org/2000/svg">
+  <rect width="540" height="720" fill="#ffffff"/>
+  <circle cx="270" cy="360" r="120" fill="#007AFF"/>
+  <text x="270" y="520" font-size="48" font-family="Arial" text-anchor="middle" fill="#333">
+    Recordbox Diary App
+  </text>
+</svg>

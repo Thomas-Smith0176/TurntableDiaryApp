@@ -8,6 +8,7 @@ interface DiaryContextType {
   updateEntry: (id: string, entry: Partial<DiaryEntry>) => void;
   deleteEntry: (id: string) => void;
   getEntryById: (id: string) => DiaryEntry | undefined;
+  getAllEntries: () => DiaryEntry[];
   averageRating: number;
 }
 

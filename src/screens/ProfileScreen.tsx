@@ -9,16 +9,6 @@ export const ProfileScreen: React.FC = () => {
     .sort((a, b) => b.rating - a.rating)
     .slice(0, 5);
 
-  const genreCount: Record<string, number> = {};
-  entries.forEach(entry => {
-    const genre = entry.album.genre || 'Unknown';
-    genreCount[genre] = (genreCount[genre] || 0) + 1;
-  });
-
-  const topGenres = Object.entries(genreCount)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3);
-
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -32,25 +22,9 @@ export const ProfileScreen: React.FC = () => {
         </View>
         <View style={styles.statBox}>
           <Text style={styles.statNumber}>{averageRating.toFixed(1)}</Text>
-          <Text style={styles.statLabel}>Avg Rating</Text>
-        </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statNumber}>{topGenres.length}</Text>
-          <Text style={styles.statLabel}>Top Genres</Text>
+          <Text style={styles.statLabel}>Average Rating</Text>
         </View>
       </View>
-
-      {topGenres.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Top Genres</Text>
-          {topGenres.map(([genre, count]) => (
-            <View key={genre} style={styles.genreItem}>
-              <Text style={styles.genreName}>{genre}</Text>
-              <Text style={styles.genreCount}>{count} album{count > 1 ? 's' : ''}</Text>
-            </View>
-          ))}
-        </View>
-      )}
 
       {topRatedAlbums.length > 0 && (
         <View style={styles.section}>
@@ -61,7 +35,7 @@ export const ProfileScreen: React.FC = () => {
                 <Text style={styles.albumTitle}>{entry.album.title}</Text>
                 <Text style={styles.albumArtist}>{entry.album.artist}</Text>
               </View>
-              <Text style={styles.rating}>{'⭐'.repeat(entry.rating)}</Text>
+              <Text style={styles.rating}>{entry.rating.toFixed(1)}</Text>
             </View>
           ))}
         </View>
@@ -77,6 +51,7 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#fff',
+    paddingTop: 50,
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,

@@ -1,12 +1,40 @@
 {
-  "extends": "@react-native/typescript-config",
   "compilerOptions": {
+    "target": "ES2020",
+    "lib": [
+      "ES2020"
+    ],
     "jsx": "react-native",
-    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "outDir": "./dist",
+    "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["jest"],
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "module": "Node16",
+    "moduleResolution": "node16",
+    "allowSyntheticDefaultImports": true,
+    "types": [
+      "jest"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    }
   },
-  "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["**/node_modules", "**/Pods"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    ".expo"
+  ],
+  "extends": "expo/tsconfig.base"
 }

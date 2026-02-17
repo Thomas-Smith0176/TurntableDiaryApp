@@ -76,3 +76,9 @@ yarn-error.log
 
 # env
 .env
+
+# Expo
+.expo/
+.expo-shared/
+dist/
+*.eas.json

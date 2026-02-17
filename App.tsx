@@ -8,13 +8,16 @@ import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { DiaryProvider } from './src/context/DiaryContext';
 import { RootNavigator } from './src/navigation/RootNavigator';
+import { AuthProvider } from '@/context/AuthContext';
 
 function App() {
   return (
     <SafeAreaProvider>
       <DiaryProvider>
-        <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-        <RootNavigator />
+        <AuthProvider>
+          <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+          <RootNavigator />
+        </AuthProvider>      
       </DiaryProvider>
     </SafeAreaProvider>
   );

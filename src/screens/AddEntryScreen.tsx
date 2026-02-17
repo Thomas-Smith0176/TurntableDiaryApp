@@ -5,6 +5,7 @@ import { DiaryEntry, Album } from '../types';
 import { CrossfaderSlider } from '../components/Sliders/CrossfaderSlider';
 
 interface AddEntryScreenProps {
+  route: any;
   navigation: any;
 }
 
@@ -17,10 +18,10 @@ export const AddEntryScreen: React.FC<AddEntryScreenProps> = ({ route, navigatio
   const handleAddEntry = () => {
     const album: Album = {
       id: Math.random().toString(36).substr(2, 9),
-      title: selectedAlbum?.name || albumTitle,
-      artist: selectedAlbum?.artist || artist,
+      title: selectedAlbum?.name || 'Unknown Album',
+      artist: selectedAlbum?.artist || 'Unknown Artist',
       releaseDate: selectedAlbum?.releaseDate || new Date().toISOString().split('T')[0],
-      artwork: selectedAlbum?.artwork || artwork,
+      artwork: selectedAlbum?.artwork || undefined,
     };
 
     const entry: DiaryEntry = {
@@ -45,17 +46,9 @@ export const AddEntryScreen: React.FC<AddEntryScreenProps> = ({ route, navigatio
         <View style={styles.section}>
           <Text style={styles.title}>{selectedAlbum?.name}</Text>
         </View>
-        <Image source={{ uri: selectedAlbum?.artwork }} style={styles.artwork} />
+        <Image source={{ uri: selectedAlbum?.artwork }} style={[styles.artwork]} />
         <View style={styles.section}>
           <Text style={styles.details}>{selectedAlbum?.artist} - {selectedAlbum?.releaseDate || 'Release Date'}</Text>
-        </View>
-
-        <View style={styles.section}>
-          <TouchableOpacity onPress={() => Linking.openURL(selectedAlbum?.url)}>
-            <View style={styles.submitButton}>
-              <Text style={styles.submitButtonText}>Listen here</Text>
-            </View>
-          </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
@@ -83,9 +76,15 @@ export const AddEntryScreen: React.FC<AddEntryScreenProps> = ({ route, navigatio
         </View>
 
         <TouchableOpacity style={styles.submitButton} onPress={handleAddEntry}>
-          <Text style={styles.submitButtonText}>Add to Diary</Text>
+          <Text style={styles.buttonText}>Add to Diary</Text>
         </TouchableOpacity>
-      </View>
+
+        <TouchableOpacity onPress={() => Linking.openURL(selectedAlbum?.url)}>
+          <View style={styles.listenButton}>
+            <Text style={styles.buttonText}>Listen here</Text>
+          </View>
+        </TouchableOpacity>
+        </View>
     </ScrollView>
   );
 };
@@ -131,7 +130,7 @@ const styles = StyleSheet.create({
   },
   artwork: {
     width: '100%',
-    height: '350',
+    height: 350,
   },
   submitButton: {
     backgroundColor: '#007AFF',
@@ -140,7 +139,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 24,
   },
-  submitButtonText: {
+  listenButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 14,
+    borderRadius: 6,
+    alignItems: 'center',
+    marginTop: 24,
+  },
+  buttonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',

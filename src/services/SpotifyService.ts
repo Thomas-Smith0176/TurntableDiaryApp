@@ -1,13 +1,14 @@
 import {SpotifyAlbum} from '../types/spotifyTypes';
-import Config from 'react-native-config';
+import Constants from 'expo-constants';
 
 export const searchAlbums = async (query: string): Promise<SpotifyAlbum[]> => {
     try {
-        const supabaseUrl = Config.SUPABASE_URL;
-        const supabaseAnonKey = Config.SUPABASE_ANON_KEY;
+        const config = Constants.expoConfig?.extra || {};
+        const supabaseUrl = config.SUPABASE_URL;
+        const supabaseAnonKey = config.SUPABASE_ANON_KEY;
 
         if (!supabaseUrl || !supabaseAnonKey) {
-            console.error('Missing Supabase configuration');
+            console.error('Supabase configuration is missing');
             return [];
         }
 

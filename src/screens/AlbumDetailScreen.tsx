@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Pressable, Alert, TextInput, Image, Modal } from 'react-native';
 import { useDiary } from '../context/DiaryContext';
 import { CrossfaderSlider } from '../components/Sliders/CrossfaderSlider';
-import EditIcon from '../icons/pencil-edit-button.svg';
 import DateTimePicker, { DateType, useDefaultStyles } from 'react-native-ui-datepicker';
 
 interface AlbumDetailScreenProps {
@@ -57,11 +56,8 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.albumTitle}>{entry.album.title}</Text>
-        <Image source={{ uri: entry.album?.artwork }} style={styles.artwork} />
+        {entry.album?.artwork && <Image source={{ uri: entry.album.artwork }} style={styles.artwork} />}
         <Text style={styles.artist}>{entry.album.artist}</Text>
-        {entry.album.genre && (
-          <Text style={styles.genre}>{entry.album.genre}</Text>
-        )}
       </View>
 
       <View style={styles.section}>
@@ -85,7 +81,7 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
             <TouchableOpacity
             onPress={() => setIsEditing(true)}
             >
-              <Image source={require('../icons/edit-icon.png')} width={16} height={16} style={styles.editIcon} />
+              <Image source={require('../icons/edit-icon.png')} width={20} height={20} style={[styles.editIcon]} />
             </TouchableOpacity>
           )}
         </View>
@@ -132,7 +128,7 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
             <TouchableOpacity
               onPress={() => setIsEditingDate(true)}
             >
-              <Image source={require('../icons/edit-icon.png')} width={16} height={16} style={styles.editIcon} />
+              <Image source={require('../icons/edit-icon.png')} width={20} height={20} style={[styles.editIcon]} />
             </TouchableOpacity>
           )}
         </View>
@@ -158,7 +154,7 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
             <DateTimePicker
               mode="single"
               date={dateListen}
-              onChange={({ date }) => setDateListen(date)}
+              onChange={({ date }) => setDateListen(date?.toString() || '')}
               styles={defaultStyles}
             />
           </View>
@@ -200,7 +196,7 @@ const styles = StyleSheet.create({
   },
   artwork: {
     width: '100%',
-    height: '350',
+    height: 350,
   },
   genre: {
     fontSize: 14,
