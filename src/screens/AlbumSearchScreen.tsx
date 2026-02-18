@@ -7,12 +7,11 @@ import { searchAlbums } from '../services/SpotifyService';
 import { SpotifyAlbum } from '../types/spotifyTypes';
 import { useFocusEffect } from '@react-navigation/native';
 
-interface AlbumDiaryScreenProps {
+interface AlbumSearchScreenProps {
   route: any;
   navigation: any;
 };
-
-export const AlbumDiaryScreen: React.FC<AlbumDiaryScreenProps> = ({ route, navigation }) => {
+export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ route, navigation }) => {
   const { loadEntries, getAllEntries } = useDiary();
   const [query  , setQuery] = useState<string>('');
   const [results, setResults] = useState<SpotifyAlbum[]>([]);
@@ -50,31 +49,30 @@ export const AlbumDiaryScreen: React.FC<AlbumDiaryScreenProps> = ({ route, navig
     setResults([]);
   }
 
-const renderAlbumItem: ListRenderItem<SpotifyAlbum> = ({ item }) => (
-    <TouchableOpacity onPress={() => handleSelectResult(item)}>
-      <View style={styles.resultContainer}>
-        {item.thumbnail ? (
-          <Image 
-            source={{ uri: item.thumbnail }} 
-            style={styles.thumbnail} 
-          />
-        ) : (
-          <View style={[styles.thumbnail, styles.placeholder]} />
-        )}
-        <View style={styles.textContainer}>
-          <Text style={styles.albumName}>{item.name}</Text>
-          <Text style={styles.artistName}>{item.artist}</Text>
+    const renderAlbumItem: ListRenderItem<SpotifyAlbum> = ({ item }) => (
+        <TouchableOpacity onPress={() => handleSelectResult(item)}>
+        <View style={styles.resultContainer}>
+            {item.thumbnail ? (
+            <Image 
+                source={{ uri: item.thumbnail }} 
+                style={styles.thumbnail} 
+            />
+            ) : (
+            <View style={[styles.thumbnail, styles.placeholder]} />
+            )}
+            <View style={styles.textContainer}>
+            <Text style={styles.albumName}>{item.name}</Text>
+            <Text style={styles.artistName}>{item.artist}</Text>
+            </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
-
-  const handleViewEntry = (entry: DiaryEntry) => {
-    navigation.navigate('AlbumDetail', { entryId: entry.id });
-  };
+        </TouchableOpacity>
+    );
 
   return (
       <View style={styles.container}>
+        <View style={styles.header}>
+            <Text style={styles.title}>Add Album</Text>
+        </View>
         <View style={styles.header}>
           <TextInput
             placeholder="Search for an album..."
@@ -119,33 +117,10 @@ const renderAlbumItem: ListRenderItem<SpotifyAlbum> = ({ item }) => (
             )}
           </View>
         ) : null}
-
-        {/* Diary Entries - Only show when no search results */}
-        {!showSearch && !loading && (
-          <>
-            {getAllEntries().length === 0 ? (
-              <View style={styles.emptyState}>
-                <Text style={styles.emptyText}>No albums logged yet</Text>
-                <Text style={styles.emptySubtext}>Start by adding your first album!</Text>
-              </View>
-            ) : (
-              <FlatList
-                data={getAllEntries()}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                  <AlbumCard
-                    entry={item}
-                    onPress={() => handleViewEntry(item)}
-                  />
-                )}
-                contentContainerStyle={styles.listContent}
-              />
-            )}
-          </>
-        )}
       </View>
      )
-    };
+
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -162,7 +137,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: 8,
-  },  
+  }, 
+  title: {
+    paddingTop: 40,
+    fontSize: 24,
+    fontWeight: 'bold',
+  }, 
   listContent: {
     paddingVertical: 8,
   },

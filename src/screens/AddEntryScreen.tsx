@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, Linking, Image} from 'react-native';
-import { CrossfaderSlider } from '../components/Sliders/CrossfaderSlider';
 import { useDiary } from '../context/DiaryContext';
 import * as AlbumService from '../services/AlbumService';
+import Slider from '@react-native-community/slider';
 
 interface AddEntryScreenProps {
   route: any;
@@ -13,6 +13,8 @@ export const AddEntryScreen: React.FC<AddEntryScreenProps> = ({ route, navigatio
   const { selectedAlbum } = route.params;
   const [review, setReview] = useState('');
   const [rating, setRating] = useState(5);
+  const [dateListen, setDateListen] = useState(selectedAlbum?.dateListen || new Date().toISOString().split('T')[0]);
+  const [isEditingDate, setIsEditingDate] = useState(false);
   const [saving, setSaving] = useState(false);
   const { addEntry } = useDiary();
 
@@ -40,49 +42,66 @@ export const AddEntryScreen: React.FC<AddEntryScreenProps> = ({ route, navigatio
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.page}>
-        <View style={styles.section}>
-          <Text style={styles.title}>{selectedAlbum?.name}</Text>
-        </View>
-        <Image source={{ uri: selectedAlbum?.artwork }} style={[styles.artwork]} />
-        <View style={styles.section}>
-          <Text style={styles.details}>{selectedAlbum?.artist} - {selectedAlbum?.releaseDate || 'Release Date'}</Text>
+      <View style={styles.header}>
+          {selectedAlbum?.artwork && <Image source={{ uri: selectedAlbum.artwork }} style={styles.artwork} />}
+          <Text style={styles.albumTitle}>{selectedAlbum?.name}</Text>
+          <Text style={styles.albumDetails}>{selectedAlbum?.artist}</Text>
+          <View style={styles.playButtonContainer}>
+            <Text style={styles.albumDetails}>{selectedAlbum?.releaseDate.slice(8, 10)}/{selectedAlbum?.releaseDate.slice(5, 7)}/{selectedAlbum?.releaseDate.slice(0, 4)}</Text>        
+            <TouchableOpacity onPress={() => Linking.openURL(selectedAlbum?.url)}>
+              <View>
+                <Image source={require('../icons/play-icon.png')} width={20} height={20} style={[styles.icon]} />
+              </View>
+            </TouchableOpacity>
+          </View>
+      </View>
+
+
+      <View style={styles.section}>
+        <View style={styles.ratingContainer}>
+          <View style={styles.ratingDisplay}>
+            <Text style={{fontSize: 24}}>{rating}</Text>
+          </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.label}>Rating</Text>
-          <CrossfaderSlider
+        <View style={styles.reviewContainer}>
+          <Slider
+            style={styles.slider}
+            minimumValue={1}
+            maximumValue={10}
             value={rating}
-            onValueChange={setRating}
-            min={1}
-            max={10}
-          />
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.label}>Review</Text>
+            step={1}
+            minimumTrackTintColor="#151515"
+            thumbTintColor="#151515"
+            onValueChange={(value) => {
+              setRating(value);
+            }}
+            />
           <TextInput
-            style={[styles.input, styles.reviewInput]}
-            placeholder="Write your review..."
-            value={review}
-            onChangeText={setReview}
+            style={styles.reviewInput}
             multiline
             numberOfLines={4}
-            placeholderTextColor="#bbb"
+            value={review}
+            onChangeText={setReview}
             textAlignVertical="top"
-          />
+            />
         </View>
 
-        <TouchableOpacity style={styles.submitButton} onPress={handleAddEntry}>
-          <Text style={styles.buttonText}>Add to Diary</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => Linking.openURL(selectedAlbum?.url)}>
-          <View style={styles.listenButton}>
-            <Text style={styles.buttonText}>Listen here</Text>
-          </View>
-        </TouchableOpacity>
+        <View style={styles.dateContainer}>
+          <Text style={styles.value}>Listened on: {new Date(dateListen).toLocaleDateString()}</Text>
+          {(!isEditingDate) && (
+            <TouchableOpacity
+              onPress={() => setIsEditingDate(true)}
+            >
+              <Image source={require('../icons/calendar-icon.png')} width={20} height={20} style={[styles.icon]} />
+            </TouchableOpacity>
+          )}
         </View>
+      </View>
+
+        <TouchableOpacity style={styles.button} onPress={handleAddEntry}>
+          <Image source={require('../icons/save-icon.png')} width={20} height={20} style={[styles.icon]} />
+        </TouchableOpacity>
     </ScrollView>
   );
 };
@@ -92,16 +111,50 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
-  page: {
-    padding: 16,
+  header: {
+    backgroundColor: '#fff',
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  albumTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginTop: 15,
+    paddingLeft: 15,
+  },
+  albumDetails: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 15,
+    marginBottom: 4,
+    paddingLeft: 15,
+  },
+  playButtonContainer: {
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
+    paddingRight: 40
+  },
+  artwork: {
+    width: '100%',
+    height: 400,
   },
   section: {
-    marginBottom: 16,
+    backgroundColor: '#fff',
+    marginHorizontal: 16,
+    marginTop: 8,
+    borderRadius: 8,
+    padding: 16,
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
+  },
+  value: {
+    fontSize: 14,
+    marginTop: 4,
   },
   title: {
     fontSize: 34,
@@ -114,6 +167,30 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     margin: 8,
   },
+  ratingContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  reviewContainer: {
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  dateContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  ratingDisplay: {
+    width: 50,
+    height: 50,
+    borderWidth: 2,
+    borderRadius: 25,
+    borderColor: '#101010',
+    marginBottom: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    fontWeight: 'bold',
+  },
   input: {
     backgroundColor: '#fff',
     borderRadius: 6,
@@ -124,29 +201,42 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
   },
   reviewInput: {
-    height: 100,
-  },
-  artwork: {
+    backgroundColor: '#f9f9f9',
+    borderRadius: 6,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    fontSize: 14,
+    minHeight: 100,
     width: '100%',
-    height: 350,
+    marginTop: 15,
+    marginBottom: 15,
   },
-  submitButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 14,
+  button: {
     borderRadius: 6,
     alignItems: 'center',
-    marginTop: 24,
-  },
-  listenButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 14,
-    borderRadius: 6,
-    alignItems: 'center',
-    marginTop: 24,
+    marginBottom: 8,
+    backgroundColor: '#93e6c4',
+    paddingVertical: 12,
+    marginHorizontal: 15,
+    marginTop: 10,
   },
   buttonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  slider: {
+    width: '100%', 
+    height: 40, 
+    backgroundColor: '#f9f9f9',
+    borderWidth: 1,
+    borderRadius: 6,
+    borderColor: '#e0e0e0',
+  },
+  icon: {
+    width: 20,
+    height: 20,
+    opacity: 0.4,
   },
 });

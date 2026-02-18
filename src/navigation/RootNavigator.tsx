@@ -12,6 +12,7 @@ import { AlbumListsScreen } from '../screens/AlbumListsScreen';
 import { useAuth } from '../context/AuthContext';
 import { LoginScreen } from '../screens/LoginScreen';
 import { SignUpScreen } from '../screens/SignUpScreen';
+import { AlbumSearchScreen } from '@/screens/AlbumSearchScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -99,6 +100,19 @@ export const RootNavigator = () => {
                 <Image 
                   source={require('../icons/home-icon.png')} 
                   style={{ width: 40, height: 40, opacity: focused ? 1 : 0.2 }} 
+                />
+              ),
+            }}
+          />
+          <Tab.Screen
+            name="Add"
+            component={AlbumSearchScreen}
+            options={{
+              tabBarLabel: 'Add',
+              tabBarIcon: ({ focused }) => (
+                <Image 
+                  source={require('../icons/add-icon.png')} 
+                  style={{ width: 20, height: 20, opacity: focused ? 1 : 0.2 }} 
                 />
               ),
             }}

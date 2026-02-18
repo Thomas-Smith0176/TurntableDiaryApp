@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { HomePageItemCard } from '../components/Cards/HomePageItemCard';
 import { useAuth } from '../context/AuthContext';
 
@@ -26,8 +26,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{user ? `${user.user_metadata.display_name.slice(0,1).toUpperCase() + user.user_metadata.display_name.slice(1)}'s` : 'My'} Jukebox</Text>
-        <TouchableOpacity style={styles.addButton} onPress={handleSignOut}>
-          <Text style={styles.addButtonText}>Sign Out</Text>
+        <TouchableOpacity style={[styles.addButton, {backgroundColor: '#e9e9e9'}]} onPress={handleSignOut}>
+            <Image source={require('../icons/sign-out-icon.png')} width={20} height={20} style={[styles.icon]} />
         </TouchableOpacity>
       </View>
       <HomePageItemCard
@@ -72,22 +72,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 12,
-  },
-  listContent: {
-    paddingVertical: 8,
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#999',
+  },  
+  icon: {
+    height: 20,
+    width: 20,
+    opacity: 0.4,
   },
 });

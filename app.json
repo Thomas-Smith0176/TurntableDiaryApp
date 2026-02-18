@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "RecordboxDiaryApp",
-    "slug": "recordbox-diary-app",
+    "name": "JukeboxDiaryApp",
+    "slug": "jukebox-diary-app",
     "version": "0.0.1",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -10,10 +10,10 @@
     ],
     "ios": {
       "supportsTabletMode": true,
-      "bundleIdentifier": "com.recordboxdiaryapp"
+      "bundleIdentifier": "com.jukeboxdiaryapp"
     },
     "android": {
-      "package": "com.recordboxdiaryapp",
+      "package": "com.jukeboxdiaryapp",
       "permissions": []
     },
     "web": {

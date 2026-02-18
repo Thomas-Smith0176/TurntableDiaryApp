@@ -4,7 +4,7 @@ export interface Album {
   artist: string;
   releaseDate: string;
   artwork?: string;
-  url?: string;
+  url: string;
   latestRating: number;
 }
 

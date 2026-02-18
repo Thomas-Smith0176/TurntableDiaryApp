@@ -1,11 +1,9 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Pressable, Alert, TextInput, Image, Modal } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Pressable, Alert, TextInput, Image, Modal, Linking } from 'react-native';
 import { useDiary } from '../context/DiaryContext';
-import { CrossfaderSlider } from '../components/Sliders/CrossfaderSlider';
-import DateTimePicker, { DateType, useDefaultStyles } from 'react-native-ui-datepicker';
+import DateTimePicker, { useDefaultStyles } from 'react-native-ui-datepicker';
 import * as AlbumService from '../services/AlbumService';
-import Slider, { MarkerProps } from '@react-native-community/slider';
-import { getAverageColor } from '../components/Buttons/ButtonColour';
+import Slider from '@react-native-community/slider';
 
 interface AlbumDetailScreenProps {
   route: any;
@@ -57,34 +55,27 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
     );
   };
 
-  useEffect(() => {
-    const updateTheme = async () => {
-      const color = await getAverageColor(entry.album.artwork);
-      setAccentColor(color);
-    };
-
-    updateTheme();
-  }, [entry.album.artwork]);
-
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
           {entry.album?.artwork && <Image source={{ uri: entry.album.artwork }} style={styles.artwork} />}
           <Text style={styles.albumTitle}>{entry.album.title}</Text>
           <Text style={styles.albumDetails}>{entry.album.artist}</Text>
-          <Text style={styles.albumDetails}>{entry.album.releaseDate.slice(8, 10)}/{entry.album.releaseDate.slice(5, 7)}/{entry.album.releaseDate.slice(0, 4)}</Text>        
-      </View>
+          <View style={styles.playButtonContainer}>
+            <Text style={styles.albumDetails}>{entry?.album.releaseDate.slice(8, 10)}/{entry?.album.releaseDate.slice(5, 7)}/{entry?.album.releaseDate.slice(0, 4)}</Text>        
+            <TouchableOpacity onPress={() => Linking.openURL(entry.album.url)}>
+              <View>
+                <Image source={require('../icons/play-icon.png')} width={20} height={20} style={[styles.icon]} />
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
 
       <View style={styles.section}>
         <View style={styles.ratingContainer}>
           <View style={styles.ratingDisplay}>
             <Text style={{fontSize: 24}}>{rating}</Text>
           </View>
-          {!isEditingReview && (
-          <TouchableOpacity onPress={() => setIsEditingReview(true)}>
-            <Image source={require('../icons/edit-icon.png')} width={20} height={20} style={[styles.editIcon]} />
-          </TouchableOpacity>
-          )}
         </View>
 
         <View style={styles.reviewContainer}>
@@ -124,33 +115,49 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
             <TouchableOpacity
               onPress={() => setIsEditingDate(true)}
             >
-              <Image source={require('../icons/edit-icon.png')} width={20} height={20} style={[styles.editIcon]} />
+              <Image source={require('../icons/calendar-icon.png')} width={20} height={20} style={[styles.icon]} />
             </TouchableOpacity>
           )}
         </View>
       </View>
 
-      {isEditingReview && (
-      <View style={styles.actions}>
+      {isEditingReview ? (
+      <View style={styles.actionsRow}>
         <TouchableOpacity
-          style={[styles.button, styles.saveButton]}
-          onPress={handleUpdate}
-        >
-          <Text style={styles.buttonText}>Save Changes</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, styles.cancelButton]}
+          style={[styles.button, styles.buttonHalf, {backgroundColor: '#d9d9d9'}]}
           onPress={() => {
             setIsEditingReview(false);
             setReview(entry.review);
             setRating(entry.rating);
             setDateListen(entry.dateListen);
           }}
-        >
-          <Text style={styles.buttonText}>Cancel</Text>
+          >
+          <Image source={require('../icons/cancel-icon.png')} width={20} height={20} style={[styles.icon]} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, styles.buttonHalf, {backgroundColor: '#93e6c4'}]}
+          onPress={handleUpdate}
+          >
+          <Image source={require('../icons/save-icon.png')} width={20} height={20} style={[styles.icon]} />
         </TouchableOpacity>
       </View>
+      ) : (
+        <View style={styles.actionsRow}>
+          <TouchableOpacity
+            style={[styles.button, styles.buttonHalf, {backgroundColor: '#d9d9d9'}]}
+            onPress={handleDelete}
+          >
+            <Image source={require('../icons/delete-icon.png')} width={30} height={30} style={[styles.icon]} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, styles.buttonHalf, {backgroundColor: '#c5e9fd'}]}
+            onPress={() => setIsEditingReview(true)}
+          >
+            <Image source={require('../icons/edit-icon.png')} width={30} height={30} style={[styles.icon]} />
+          </TouchableOpacity>
+        </View>
       )}
+
 
       <Modal
         visible={isEditingDate}
@@ -174,15 +181,6 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
           </View>
         </View>
       </Modal>
-
-      <View style={styles.actions}>
-        <TouchableOpacity
-          style={[styles.button, styles.deleteButton]}
-          onPress={handleDelete}
-        >
-          <Text style={styles.buttonText}>Remove from My Diary</Text>
-        </TouchableOpacity>
-      </View>
     </ScrollView>
   );
 };
@@ -211,9 +209,15 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     paddingLeft: 15,
   },
+  playButtonContainer: {
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
+    paddingRight: 40
+  },
   artwork: {
     width: '100%',
-    height: 350,
+    height: 400,
   },
   genre: {
     fontSize: 14,
@@ -222,7 +226,7 @@ const styles = StyleSheet.create({
   section: {
     backgroundColor: '#fff',
     marginHorizontal: 16,
-    marginVertical: 8,
+    marginTop: 8,
     borderRadius: 8,
     padding: 16,
   },
@@ -313,30 +317,36 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
   },
   actions: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'stretch',
     padding: 16,
-    gap: 8,
+  },
+  actionsRow: {
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  buttonHalf: {
+    flex: 1,
+    marginHorizontal: 6,
+    marginBottom: 0,
   },
   button: {
-    paddingVertical: 12,
     borderRadius: 6,
     alignItems: 'center',
     marginBottom: 8,
-  },
-  saveButton: {
-    backgroundColor: '#34C759',
-  },
-  cancelButton: {
-    backgroundColor: '#999',
-  },
-  deleteButton: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: '#e9e9e9',
+    paddingVertical: 12,
   },
   buttonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
   },
-  editIcon: {
+  icon: {
     width: 20,
     height: 20,
     opacity: 0.4,

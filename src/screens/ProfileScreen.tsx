@@ -104,21 +104,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 12,
   },
-  genreItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  genreName: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  genreCount: {
-    fontSize: 14,
-    color: '#666',
-  },
   albumItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
