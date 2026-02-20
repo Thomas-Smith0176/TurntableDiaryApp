@@ -21,7 +21,7 @@ export const HomePageItemCard = ({ item, onPress }: HomePageItemCardProps) => {
 const styles = StyleSheet.create({
   card: {
     marginHorizontal: 16,
-    marginVertical: 8,
+    marginTop: 15,
     borderRadius: 8,
     overflow: 'hidden',
     backgroundColor: '#ffffff',

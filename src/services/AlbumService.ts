@@ -6,6 +6,7 @@ export const getUserAlbums = async (): Promise<Album[]> => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('User not logged in');
 
+        // Fetch all albums for the user
         const { data: albums, error: albumsError } = await supabase
             .from('albums')
             .select(`id, title, artist, release_date, artwork_url, album_url, latest_rating`)
@@ -29,6 +30,75 @@ export const getUserAlbums = async (): Promise<Album[]> => {
 
     } catch (error) {
         console.error('Error fetching user albums:', error);
+        return [];
+    }
+};
+
+export const getTopRatedAlbumsFromDiary = async (): Promise<Album[]> => {
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not logged in');
+
+        // Fetch all diary entries for the user
+        const { data: entries, error: entriesError } = await supabase
+            .from('diary_entries')
+            .select(`id, rating, album_id`)
+            .eq('user_id', user.id);
+
+        if (entriesError) throw entriesError;
+        if (!entries || entries.length === 0) return [];
+
+        // Extract unique album IDs
+        const albumIds = Array.from(new Set(entries.map((e: any) => e.album_id)));
+
+        // Fetch album details
+        const { data: albums, error: albumsError } = await supabase
+            .from('albums')
+            .select(`id, title, artist, release_date, artwork_url, album_url`)
+            .in('id', albumIds);
+
+        if (albumsError) throw albumsError;
+
+        // Create a map of album id -> album data
+        const albumMap = (albums || []).reduce((acc: any, album: any) => {
+            acc[album.id] = album;
+            return acc;
+        }, {});
+
+        // Group entries by album_id and get the highest rating for each
+        const topRatedByAlbum: { [key: string]: Album } = {};
+
+        entries.forEach((entry: any) => {
+            const albumData = albumMap[entry.album_id];
+            if (!albumData) return;
+
+            if (!topRatedByAlbum[entry.album_id]) {
+                topRatedByAlbum[entry.album_id] = {
+                    id: albumData.id,
+                    title: albumData.title,
+                    artist: albumData.artist,
+                    releaseDate: albumData.release_date,
+                    artwork: albumData.artwork_url ?? undefined,
+                    url: albumData.album_url ?? undefined,
+                    latestRating: entry.rating,
+                };
+            } else {
+                // Keep the highest rating
+                topRatedByAlbum[entry.album_id].latestRating = Math.max(
+                    topRatedByAlbum[entry.album_id].latestRating,
+                    entry.rating
+                );
+            }
+        });
+
+        // Convert to array and sort by rating
+        const topRated = Object.values(topRatedByAlbum)
+            .sort((a, b) => b.latestRating - a.latestRating);
+
+        return topRated;
+
+    } catch (error) {
+        console.error('Error fetching top rated albums from diary:', error);
         return [];
     }
 };

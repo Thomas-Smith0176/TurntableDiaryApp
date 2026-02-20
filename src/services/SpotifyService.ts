@@ -1,4 +1,4 @@
-import {SpotifyAlbum} from '../types/spotifyTypes';
+import {SpotifyAlbum, RecentlyPlayedResponse} from '../types/spotifyTypes';
 import Constants from 'expo-constants';
 
 export const searchAlbums = async (query: string): Promise<SpotifyAlbum[]> => {
@@ -53,4 +53,18 @@ export const searchAlbums = async (query: string): Promise<SpotifyAlbum[]> => {
         console.error('Error searching albums:', error);
         return [];
     }
+};
+
+export const getUniqueRecentAlbums = (data: RecentlyPlayedResponse): SpotifyAlbum[] => {
+    const uniqueAlbums: SpotifyAlbum[] = [];
+    const seenIds = new Set<string>();
+    for (const item of data.items) {
+        const album = item.track.album;
+
+        if (!seenIds.has(album.id)) {
+            seenIds.add(album.id);
+            uniqueAlbums.push(album);
+        }
+    }
+    return uniqueAlbums;
 };

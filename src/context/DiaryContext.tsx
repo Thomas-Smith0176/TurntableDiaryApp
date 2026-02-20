@@ -14,6 +14,7 @@ interface DiaryContextType {
   getEntryById: (id: string) => DiaryEntry | undefined;
   getAllEntries: () => DiaryEntry[];
   averageRating: number;
+  getTopRatedAlbumsFromDiary: () => Promise<Album[]>;
 }
 
 const DiaryContext = createContext<DiaryContextType | undefined>(undefined);
@@ -69,7 +70,7 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   return (
     <DiaryContext.Provider
-      value={{ entries, albums, loadEntries, loadAlbums, getAllEntries, addEntry, updateEntry, deleteEntry, getEntryById, averageRating }}
+      value={{ entries, albums, loadEntries, loadAlbums, getAllEntries, addEntry, updateEntry, deleteEntry, getEntryById, averageRating, getTopRatedAlbumsFromDiary: AlbumService.getTopRatedAlbumsFromDiary }}
     >
       {children}
     </DiaryContext.Provider>

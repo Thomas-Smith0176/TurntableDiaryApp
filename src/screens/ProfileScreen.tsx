@@ -1,33 +1,56 @@
-import React, { useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import React, { useEffect, useCallback, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert} from 'react-native';
 import { useDiary } from '../context/DiaryContext';
 import { useFocusEffect } from '@react-navigation/native';
+import { useAuth } from '@/context/AuthContext';
+import { Album } from '@/types';
+import { LastfmModal } from '@/components/Modals/LastfmModal';
 
 export const ProfileScreen: React.FC = () => {
-  const { albums, averageRating, loadAlbums } = useDiary();
+  const { entries, albums, averageRating, loadAlbums, getTopRatedAlbumsFromDiary } = useDiary();
+  const [topRatedAlbums, setTopRatedAlbums] = useState<Album[]>([]);
+  const [showModal, setShowModal] = useState(false);
 
-  const topRatedAlbums = [...albums]
-    .sort((a, b) => b.latestRating - a.latestRating)
-    .slice(0, 5);
+  const { signOut, user } = useAuth();
 
   useFocusEffect(
     useCallback(() => {
       loadAlbums();
+      loadTopRatedAlbums();
     }, [])
   );
 
-  console.log('Entries:', topRatedAlbums);
+  const loadTopRatedAlbums = async () => {
+    const albums = await getTopRatedAlbumsFromDiary();
+    setTopRatedAlbums(albums.slice(0, 5));
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
+  };
   
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>My Profile</Text>
+        <Text style={styles.title}>{user ? `${user.user_metadata.display_name.slice(0,1).toUpperCase() + user.user_metadata.display_name.slice(1)}'s` : 'My'} Profile</Text>
+        <View style={{ flexDirection: 'row', gap: 12 }}>
+        <TouchableOpacity style={[styles.button, {backgroundColor: '#e9e9e9'}]} onPress={() => setShowModal(true)}>
+            <Image source={require('../icons/link-icon.png')} width={20} height={20} style={[styles.icon]} />
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.button, {backgroundColor: '#e9e9e9'}]} onPress={handleSignOut}>
+            <Image source={require('../icons/sign-out-icon.png')} width={20} height={20} style={[styles.icon]} />
+        </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.statsContainer}>
         <View style={styles.statBox}>
-          <Text style={styles.statNumber}>{albums.length}</Text>
-          <Text style={styles.statLabel}>Albums Logged</Text>
+          <Text style={styles.statNumber}>{entries.length}</Text>
+          <Text style={styles.statLabel}>Records Logged</Text>
         </View>
         <View style={styles.statBox}>
           <Text style={styles.statNumber}>{averageRating.toFixed(1)}</Text>
@@ -37,7 +60,7 @@ export const ProfileScreen: React.FC = () => {
 
       {topRatedAlbums.length > 0 && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Top Rated Albums</Text>
+          <Text style={styles.sectionTitle}>Top Rated Records</Text>
           {topRatedAlbums.map(album => (
             <View key={album.id} style={styles.albumItem}>
               <View>
@@ -48,6 +71,9 @@ export const ProfileScreen: React.FC = () => {
             </View>
           ))}
         </View>
+      )}
+      {showModal && (
+        <LastfmModal setShowModal={setShowModal}/> 
       )}
     </ScrollView>
   );
@@ -60,11 +86,14 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#fff',
-    paddingTop: 50,
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingTop: 50,
+    paddingBottom: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   title: {
     fontSize: 24,
@@ -123,5 +152,15 @@ const styles = StyleSheet.create({
   },
   rating: {
     fontSize: 14,
+  },
+  button: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+  },  
+  icon: {
+    height: 20,
+    width: 20,
+    opacity: 0.4,
   },
 });

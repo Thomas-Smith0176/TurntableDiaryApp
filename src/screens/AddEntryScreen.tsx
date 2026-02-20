@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, Linking, Image} from 'react-native';
 import { useDiary } from '../context/DiaryContext';
 import * as AlbumService from '../services/AlbumService';
 import Slider from '@react-native-community/slider';
+import { useFocusEffect } from '@react-navigation/native';
+import { DateModal } from '@/components/Modals/DateModal';
 
 interface AddEntryScreenProps {
   route: any;
@@ -37,7 +39,8 @@ export const AddEntryScreen: React.FC<AddEntryScreenProps> = ({ route, navigatio
     setSaving(false);
 
     Alert.alert('Success', 'Album added to your diary!');
-    navigation.goBack();
+    navigation.navigate('AlbumSearch');
+    navigation.navigate('AlbumDiary');
   };
 
   return (
@@ -102,6 +105,13 @@ export const AddEntryScreen: React.FC<AddEntryScreenProps> = ({ route, navigatio
         <TouchableOpacity style={styles.button} onPress={handleAddEntry}>
           <Image source={require('../icons/save-icon.png')} width={20} height={20} style={[styles.icon]} />
         </TouchableOpacity>
+
+      <DateModal
+        isEditingDate={isEditingDate}
+        setIsEditingDate={setIsEditingDate}
+        dateListen={dateListen}
+        setDateListen={setDateListen}
+      />
     </ScrollView>
   );
 };

@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Pressable, Alert, TextInput, Image, Modal, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Pressable, Alert, TextInput, Image, Modal, Linking, Platform } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useDiary } from '../context/DiaryContext';
 import DateTimePicker, { useDefaultStyles } from 'react-native-ui-datepicker';
 import * as AlbumService from '../services/AlbumService';
 import Slider from '@react-native-community/slider';
+import { DateModal } from '@/components/Modals/DateModal';
 
 interface AlbumDetailScreenProps {
   route: any;
@@ -56,7 +58,12 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <KeyboardAwareScrollView
+      style={styles.container}
+      enableOnAndroid={true}
+      extraHeight={100}
+      enableAutomaticScroll={true}
+    >
       <View style={styles.header}>
           {entry.album?.artwork && <Image source={{ uri: entry.album.artwork }} style={styles.artwork} />}
           <Text style={styles.albumTitle}>{entry.album.title}</Text>
@@ -157,31 +164,14 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
           </TouchableOpacity>
         </View>
       )}
-
-
-      <Modal
-        visible={isEditingDate}
-        transparent={true}
-        animationType="fade"
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Date</Text>
-              <TouchableOpacity onPress={() => {setIsEditingDate(false);}}>
-                <Text style={styles.modalCloseButton}>Done</Text>
-              </TouchableOpacity>
-            </View>
-            <DateTimePicker
-              mode="single"
-              date={dateListen}
-              onChange={({ date }) => setDateListen(date?.toString() || '')}
-              styles={defaultStyles}
-            />
-          </View>
-        </View>
-      </Modal>
-    </ScrollView>
+      
+      <DateModal
+        isEditingDate={isEditingDate}
+        setIsEditingDate={setIsEditingDate}
+        dateListen={dateListen}
+        setDateListen={setDateListen}
+      />
+    </KeyboardAwareScrollView>
   );
 };
 

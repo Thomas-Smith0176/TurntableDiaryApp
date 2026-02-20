@@ -9,6 +9,7 @@ import { AddEntryScreen } from '../screens/AddEntryScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { AlbumDetailScreen } from '../screens/AlbumDetailScreen';
 import { AlbumListsScreen } from '../screens/AlbumListsScreen';
+import { CreateListScreen } from '../screens/CreateListScreen';
 import { useAuth } from '../context/AuthContext';
 import { LoginScreen } from '../screens/LoginScreen';
 import { SignUpScreen } from '../screens/SignUpScreen';
@@ -28,31 +29,43 @@ const HomeStack = () => {
       <Stack.Screen
         name="AlbumDiary"
         component={AlbumDiaryScreen}
-        options={{ title: 'Album Diary' }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="AlbumLists"
         component={AlbumListsScreen}
-        options={{ title: 'Album Lists' }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="AddEntry"
-        component={AddEntryScreen}
-        options={{ title: 'Add Album' }}
+        name="CreateList"
+        component={CreateListScreen}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="AlbumDetail"
         component={AlbumDetailScreen}
-        options={{ title: 'Album Details' }}
-      />
-      <Stack.Screen
-        name="Login"
-        component={LoginScreen}
-        options={{ headerShown: false }}
+        options={{ title: '' }}
       />
     </Stack.Navigator>
   );
 };
+
+const SearchStack = () => {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="AlbumSearch"
+        component={AlbumSearchScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AddEntry"
+        component={AddEntryScreen}
+        options={{ title: '' }}
+      />
+    </Stack.Navigator>
+  );
+}
 
 const AuthStack = () => {
   return (
@@ -95,20 +108,20 @@ export const RootNavigator = () => {
             name="Home"
             component={HomeStack}
             options={{
-              tabBarLabel: 'Home',
+              tabBarLabel: 'My Music',
               tabBarIcon: ({ focused }) => (
                 <Image 
-                  source={require('../icons/home-icon.png')} 
-                  style={{ width: 40, height: 40, opacity: focused ? 1 : 0.2 }} 
+                  source={require('../icons/record-icon.png')} 
+                  style={{ width: 25, height: 25, opacity: focused ? 1 : 0.2 }} 
                 />
               ),
             }}
           />
           <Tab.Screen
             name="Add"
-            component={AlbumSearchScreen}
+            component={SearchStack}
             options={{
-              tabBarLabel: 'Add',
+              tabBarLabel: 'Add to Diary',
               tabBarIcon: ({ focused }) => (
                 <Image 
                   source={require('../icons/add-icon.png')} 
@@ -121,7 +134,7 @@ export const RootNavigator = () => {
             name="Profile"
             component={ProfileScreen}
             options={{
-              tabBarLabel: 'Profile',
+              tabBarLabel: 'My Profile',
               tabBarIcon: ({ focused }) => (
                 <Image 
                   source={require('../icons/profile-icon.png')} 

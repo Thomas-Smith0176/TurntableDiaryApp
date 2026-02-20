@@ -1,28 +1,31 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Image, ListRenderItem, ActivityIndicator, Keyboard } from 'react-native';
-import { useDiary } from '../context/DiaryContext';
-import { AlbumCard } from '../components/Cards/AlbumCard';
-import { Album, DiaryEntry } from '../types';
 import { searchAlbums } from '../services/SpotifyService';
 import { SpotifyAlbum } from '../types/spotifyTypes';
 import { useFocusEffect } from '@react-navigation/native';
+import { SearchResult } from '@/components/Search/SearchResult';
+import { LastfmModal } from '@/components/Modals/LastfmModal';
+import { fetchLastFmUsername } from '@/services/ProfileService';
 
 interface AlbumSearchScreenProps {
   route: any;
   navigation: any;
 };
 export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ route, navigation }) => {
-  const { loadEntries, getAllEntries } = useDiary();
   const [query  , setQuery] = useState<string>('');
   const [results, setResults] = useState<SpotifyAlbum[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [showSearch, setShowSearch] = useState<boolean>(false);
+  const [showModal, setShowModal] = useState(false);
+  const [savedName, setSavedName] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
-      loadEntries();
-      setShowSearch(false);
       setQuery('');
+      const loadLastFmUsername = async () => {
+        const savedName = await fetchLastFmUsername();
+        setSavedName(savedName);
+      };
+      loadLastFmUsername();
     }, [])
   );
 
@@ -42,40 +45,18 @@ export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ route, nav
     }
   };
 
-  const handleSelectResult = (album: SpotifyAlbum) => {
-    console.log('Selected album:', album);
-    // Future: Navigate to add entry screen with selected album details
-    navigation.navigate('AddEntry', { selectedAlbum: album });
-    setResults([]);
-  }
-
-    const renderAlbumItem: ListRenderItem<SpotifyAlbum> = ({ item }) => (
-        <TouchableOpacity onPress={() => handleSelectResult(item)}>
-        <View style={styles.resultContainer}>
-            {item.thumbnail ? (
-            <Image 
-                source={{ uri: item.thumbnail }} 
-                style={styles.thumbnail} 
-            />
-            ) : (
-            <View style={[styles.thumbnail, styles.placeholder]} />
-            )}
-            <View style={styles.textContainer}>
-            <Text style={styles.albumName}>{item.name}</Text>
-            <Text style={styles.artistName}>{item.artist}</Text>
-            </View>
-        </View>
-        </TouchableOpacity>
-    );
+  const renderAlbumItem: ListRenderItem<SpotifyAlbum> = ({ item }) => (
+    <SearchResult item={item} navigation={navigation}/>
+  );
 
   return (
       <View style={styles.container}>
         <View style={styles.header}>
-            <Text style={styles.title}>Add Album</Text>
+            <Text style={styles.title}>Add Music</Text>
         </View>
         <View style={styles.header}>
           <TextInput
-            placeholder="Search for an album..."
+            placeholder="Search for a record..."
             value={query}
             onChangeText={setQuery}
             onSubmitEditing={handleSearch}
@@ -96,11 +77,11 @@ export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ route, nav
           </TouchableOpacity>
         </View>
 
-        {results.length > 0 || loading ? (
+        {results.length > 0 || loading && (
           <View style={styles.searchResultsContainer}>
             {loading ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#0000ff" />
+                <ActivityIndicator size="large" color="#c5e9fd" />
               </View>
             ) : (
               <FlatList
@@ -116,10 +97,16 @@ export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ route, nav
               />
             )}
           </View>
-        ) : null}
+        )}
+          
+        {results.length === 0 && !loading && (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyText}>What have you been listening to?</Text>
+            <Text style={styles.emptySubtext}>Go to 'My Profile' to Link your Last Fm Account and See Recently Played Records</Text>
+          </View>
+        )}
       </View>
      )
-
 };
 
 const styles = StyleSheet.create({
@@ -159,6 +146,8 @@ const styles = StyleSheet.create({
   emptySubtext: {
     fontSize: 14,
     color: '#999',
+    paddingHorizontal: 40,
+    textAlign: 'center',
   },
   searchInput: {
     flex: 1,
@@ -193,35 +182,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  resultContainer: {
-    flexDirection: 'row',
-    marginBottom: 15,
-    alignItems: 'center',
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  thumbnail: {
-    width: 50,
-    height: 50,
-    borderRadius: 4,
-  },
-  placeholder: {
-    backgroundColor: '#e1e1e1',
-  },
-  textContainer: {
-    marginLeft: 10,
-    justifyContent: 'center',
-    flex: 1,
-  },
-  albumName: {
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  artistName: {
-    color: 'gray',
-    fontSize: 14,
-  },
   icon: {
     width: 20,
     height: 20,
@@ -230,7 +190,7 @@ const styles = StyleSheet.create({
   button: {
     borderRadius: 6,
     alignItems: 'center',
-    backgroundColor: '#d9d9d9',
+    backgroundColor: '#D31F27',
     paddingVertical: 12,
     marginHorizontal: 15,
     marginTop: 15,
