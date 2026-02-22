@@ -5,6 +5,7 @@ import * as AlbumService from '../services/AlbumService';
 import Slider from '@react-native-community/slider';
 import { useFocusEffect } from '@react-navigation/native';
 import { DateModal } from '@/components/Modals/DateModal';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 interface AddEntryScreenProps {
   route: any;
@@ -44,7 +45,12 @@ export const AddEntryScreen: React.FC<AddEntryScreenProps> = ({ route, navigatio
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <KeyboardAwareScrollView
+      style={styles.container}
+      enableOnAndroid={true}
+      extraHeight={100}
+      enableAutomaticScroll={true}
+    >
       <View style={styles.header}>
           {selectedAlbum?.artwork && <Image source={{ uri: selectedAlbum.artwork }} style={styles.artwork} />}
           <Text style={styles.albumTitle}>{selectedAlbum?.name}</Text>
@@ -112,7 +118,7 @@ export const AddEntryScreen: React.FC<AddEntryScreenProps> = ({ route, navigatio
         dateListen={dateListen}
         setDateListen={setDateListen}
       />
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 };
 

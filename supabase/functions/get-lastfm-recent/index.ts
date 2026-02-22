@@ -4,39 +4,56 @@
 
 // Setup type definitions for built-in Supabase Runtime APIs
 import "@supabase/functions-js/edge-runtime.d.ts"
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-
 
 Deno.serve(async (req) => {
+  console.log("Recieved request for edge function get-lastfm-recent")
   try {
     const { username } = await req.json();
     const API_KEY = Deno.env.get('LASTFM_API_KEY');
 
-    if (!username) return new Response("Username required", { status: 400 });
+    if (!username) return new Response(JSON.stringify({ error: "Username required" }), { status: 400, headers: { "Content-Type": "application/json" } });
+    if (!API_KEY) return new Response(JSON.stringify({ error: "LASTFM_API_KEY not set" }), { status: 500, headers: { "Content-Type": "application/json" } });
 
     const url = `http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${username}&api_key=${API_KEY}&format=json&limit=30`;
 
     const res = await fetch(url);
-    const data = await res.json();
+    console.log(`Fetched recent tracks for ${username}: ${res.status}`);
+
+    // If Last.fm returns a non-2xx, include helpful debug info in the error response
+    if (res.status < 200 || res.status >= 300) {
+      const text = await res.text().catch(() => '<unreadable body>');
+      const preview = typeof text === 'string' ? text.slice(0, 2000) : String(text);
+      const urlNoKey = `http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${username}&format=json&limit=30`;
+      console.error('Last.fm returned non-2xx', { status: res.status, preview });
+      return new Response(JSON.stringify({ error: 'Last.fm returned non-2xx', lastfmStatus: res.status, lastfmBodyPreview: preview, request: { url: urlNoKey } }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+    }
+
+    const data = await res.json().catch(() => ({}));
 
     // Last.fm returns an array of tracks; we want unique albums
-    const tracks = data.recenttracks.track;
-    const uniqueAlbums = [];
-    const seen = new Set();
+    let tracks = data?.recenttracks?.track ?? [];
+    if (!Array.isArray(tracks) && tracks) tracks = [tracks];
+    const uniqueAlbums: Array<Record<string, unknown>> = [];
+    const seen = new Set<string>();
 
     for (const track of tracks) {
-      const albumName = track.album['#text'];
-      const artistName = track.artist['#text'];
+      const albumName = track?.album?.['#text'];
+      const artistName = track?.artist?.['#text'];
+      if (!albumName || !artistName) continue;
       const combo = `${artistName}-${albumName}`;
 
-      if (albumName && !seen.has(combo)) {
+      if (!seen.has(combo)) {
         seen.add(combo);
+        const images = Array.isArray(track.image) ? track.image : [];
+        let artwork = (images[3]?.['#text'] || images[2]?.['#text'] || images[1]?.['#text'] || images[0]?.['#text'] || '') as string;
+        // Ensure artwork is a non-empty string
+        artwork = artwork && artwork.trim() ? artwork : '';
+
         uniqueAlbums.push({
           title: albumName,
           artist: artistName,
-          // Last.fm provides images in an array: 0=s, 1=m, 2=l, 3=xl
-          artwork: track.image[3]['#text'] || track.image[2]['#text'],
-          date: track.date?.['#text'] || 'Now Playing'
+          artwork,
+          date: track?.date?.['#text'] || 'Now Playing'
         });
       }
     }
@@ -45,7 +62,8 @@ Deno.serve(async (req) => {
       headers: { "Content-Type": "application/json" },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+    console.error('Function error:', err);
+    return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { "Content-Type": "application/json" } });
   }
 });
 

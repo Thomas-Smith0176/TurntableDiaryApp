@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Image, ListRenderItem, ActivityIndicator, Keyboard } from 'react-native';
 import { searchAlbums } from '../services/SpotifyService';
 import { SpotifyAlbum } from '../types/spotifyTypes';
@@ -6,6 +6,9 @@ import { useFocusEffect } from '@react-navigation/native';
 import { SearchResult } from '@/components/Search/SearchResult';
 import { LastfmModal } from '@/components/Modals/LastfmModal';
 import { fetchLastFmUsername } from '@/services/ProfileService';
+import { getRecentAlbums } from '@/services/LastFmService';
+import { RecentAlbum } from '@/types/lastFmTypes';
+import { SuggestedAlbumCard } from '@/components/Cards/SuggestedAlbumCard';
 
 interface AlbumSearchScreenProps {
   route: any;
@@ -15,18 +18,33 @@ export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ route, nav
   const [query  , setQuery] = useState<string>('');
   const [results, setResults] = useState<SpotifyAlbum[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [showModal, setShowModal] = useState(false);
+  const [loadingHistory, setLoadingHistory] = useState<boolean>(false);
   const [savedName, setSavedName] = useState<string | null>(null);
+  const [recentAlbums, setRecentAlbums] = useState<RecentAlbum[]>([]);
+
+  const initializeData = useCallback(async () => {
+    setLoadingHistory(true);
+    try {
+      const name = await fetchLastFmUsername();
+      setSavedName(name);
+
+      if (name) {
+        const albums = await getRecentAlbums(name);
+        setRecentAlbums(albums);
+      }
+    } catch (error) {
+      console.error("Initialization error:", error);
+    } finally {
+      setLoadingHistory(false);
+    }
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
       setQuery('');
-      const loadLastFmUsername = async () => {
-        const savedName = await fetchLastFmUsername();
-        setSavedName(savedName);
-      };
-      loadLastFmUsername();
-    }, [])
+      setResults([]);
+      initializeData();
+    }, [initializeData])
   );
 
   const handleSearch = async () => {
@@ -43,6 +61,12 @@ export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ route, nav
           setLoading(false);
         }
     }
+  };
+
+  const handleRecentAlbumSearch = async (albumTitle: string, artist: string) => {
+    await searchAlbums(`${albumTitle} ${artist}`).then((albums) => {
+      navigation.navigate('AddEntry', { selectedAlbum: albums[0] });
+    });
   };
 
   const renderAlbumItem: ListRenderItem<SpotifyAlbum> = ({ item }) => (
@@ -77,34 +101,75 @@ export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ route, nav
           </TouchableOpacity>
         </View>
 
-        {results.length > 0 || loading && (
+        {(results.length > 0 || (query.length > 0 && loading)) && (
           <View style={styles.searchResultsContainer}>
             {loading ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#c5e9fd" />
               </View>
-            ) : (
+            ) : results.length > 0 ? (
               <FlatList
                 data={results}
                 keyExtractor={(item) => item.id}
                 renderItem={renderAlbumItem}
+                scrollEnabled={true}
+                nestedScrollEnabled={true}
+                style={{ flex: 1 }}
                 contentContainerStyle={styles.resultsListContent}
-                ListEmptyComponent={
-                  results.length === 0 ? (
-                    <Text style={styles.emptyText}>No albums found</Text>
-                  ) : null
-                }
               />
+            ) : (
+              <View style={styles.loadingContainer}>
+                <Text style={styles.emptyText}>No albums found</Text>
+              </View>
             )}
           </View>
         )}
           
-        {results.length === 0 && !loading && (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>What have you been listening to?</Text>
-            <Text style={styles.emptySubtext}>Go to 'My Profile' to Link your Last Fm Account and See Recently Played Records</Text>
-          </View>
-        )}
+{results.length === 0 && (
+  <View style={styles.carouselSection}>
+    <View style={styles.carouselContainer}>
+      <Text style={styles.sectionTitle}>Recently Played</Text>
+
+      {loadingHistory ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#e9e9e9" style={styles.loading} />
+        </View>
+      ) : (
+        <>
+          {!savedName && (
+            <Text style={styles.emptySubtext}>Link your Last.fm in Profile</Text>
+          )}
+          
+          {savedName && recentAlbums.length === 0 && (
+            <Text style={styles.emptySubtext}>No history found for {savedName}</Text>
+          )}
+
+          {savedName && recentAlbums.length > 0 && (
+            <FlatList
+              data={recentAlbums}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={(item, index) => item.timestamp || index.toString()}
+              snapToInterval={220}
+              decelerationRate={"fast"}
+              renderItem={({ item }) => (
+                <View style={styles.cardWrapper}>
+                  <SuggestedAlbumCard
+                    recentAlbum={item}
+                    onPress={() => handleRecentAlbumSearch(item.albumTitle, item.artist)}
+                  />
+                </View>
+              )}
+            />
+          )}
+        </>
+      )}
+    </View>
+    <View style={styles.emptyState}>
+      <Text style={styles.emptyText}>What have you been listening to?</Text>
+    </View>
+  </View>
+)}
       </View>
      )
 };
@@ -133,15 +198,15 @@ const styles = StyleSheet.create({
   listContent: {
     paddingVertical: 8,
   },
-  emptyState: {
+  carouselSection: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
+
   emptyText: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 8,
+    justifyContent: 'center'
   },
   emptySubtext: {
     fontSize: 14,
@@ -195,4 +260,29 @@ const styles = StyleSheet.create({
     marginHorizontal: 15,
     marginTop: 15,
   },
+  carouselContainer: {
+    paddingTop: 15,
+    height: 315, 
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginLeft: 16,
+    marginBottom: 12,
+    color: '#333',
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  cardWrapper: {
+    width: 180,
+  },
+  loading: {
+    marginTop: 20
+  }
 });
