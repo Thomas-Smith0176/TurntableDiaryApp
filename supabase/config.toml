@@ -404,3 +404,14 @@ entrypoint = "./functions/get-lastfm-recent/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/get-lastfm-recent/*.html" ]
+
+[functions.get-spotify-trending]
+enabled = true
+verify_jwt = true
+import_map = "./functions/get-spotify-trending/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/get-spotify-trending/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/get-spotify-trending/*.html" ]

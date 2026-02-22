@@ -6,6 +6,7 @@ import Slider from '@react-native-community/slider';
 import { useFocusEffect } from '@react-navigation/native';
 import { DateModal } from '@/components/Modals/DateModal';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { processDate } from '@/functions/processDate';
 
 interface AddEntryScreenProps {
   route: any;
@@ -20,6 +21,8 @@ export const AddEntryScreen: React.FC<AddEntryScreenProps> = ({ route, navigatio
   const [isEditingDate, setIsEditingDate] = useState(false);
   const [saving, setSaving] = useState(false);
   const { addEntry } = useDiary();
+
+  console.log(selectedAlbum);
 
   const handleAddEntry = async () => {
     setSaving(true);
@@ -56,7 +59,7 @@ export const AddEntryScreen: React.FC<AddEntryScreenProps> = ({ route, navigatio
           <Text style={styles.albumTitle}>{selectedAlbum?.name}</Text>
           <Text style={styles.albumDetails}>{selectedAlbum?.artist}</Text>
           <View style={styles.playButtonContainer}>
-            <Text style={styles.albumDetails}>{selectedAlbum?.releaseDate.slice(8, 10)}/{selectedAlbum?.releaseDate.slice(5, 7)}/{selectedAlbum?.releaseDate.slice(0, 4)}</Text>        
+            <Text style={styles.albumDetails}> {processDate(selectedAlbum.releaseDate)}</Text>        
             <TouchableOpacity onPress={() => Linking.openURL(selectedAlbum?.url)}>
               <View>
                 <Image source={require('../icons/play-icon.png')} width={20} height={20} style={[styles.icon]} />

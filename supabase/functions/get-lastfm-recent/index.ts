@@ -19,7 +19,6 @@ Deno.serve(async (req) => {
     const res = await fetch(url);
     console.log(`Fetched recent tracks for ${username}: ${res.status}`);
 
-    // If Last.fm returns a non-2xx, include helpful debug info in the error response
     if (res.status < 200 || res.status >= 300) {
       const text = await res.text().catch(() => '<unreadable body>');
       const preview = typeof text === 'string' ? text.slice(0, 2000) : String(text);

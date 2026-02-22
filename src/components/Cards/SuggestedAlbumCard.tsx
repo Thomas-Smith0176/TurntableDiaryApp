@@ -1,30 +1,30 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { RecentAlbum } from '@/types/lastFmTypes';
+import { SuggestedAlbum } from '@/types/lastFmTypes';
 
 interface SuggestedAlbumCardProps {
-  recentAlbum: RecentAlbum;
+  suggestedAlbum: SuggestedAlbum;
   onPress: () => void;
 }
 
-export const SuggestedAlbumCard: React.FC<SuggestedAlbumCardProps> = ({ recentAlbum, onPress }) => {
-  const hasValidArtwork = recentAlbum.artwork && recentAlbum.artwork.trim().length > 0;
+export const SuggestedAlbumCard: React.FC<SuggestedAlbumCardProps> = ({ suggestedAlbum, onPress }) => {
+  const hasValidArtwork = suggestedAlbum.artwork && suggestedAlbum.artwork.trim().length > 0;
   if (!hasValidArtwork) {
-    console.warn('Missing or empty artwork URL for album:', recentAlbum.albumTitle);
+    console.warn('Missing or empty artwork URL for album:', suggestedAlbum.albumTitle);
   }
-  const imageFormat = recentAlbum.artwork?.includes('.png') ? 'PNG' : 'JPG';
+  const imageFormat = suggestedAlbum.artwork?.includes('.png') ? 'PNG' : 'JPG';
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
       <View style={styles.container}>
         {hasValidArtwork ? (
           <View style={styles.imageContainer}>
             <Image
-              source={{ uri: recentAlbum.artwork }}
+              source={{ uri: suggestedAlbum.artwork }}
               style={styles.coverImage}
               onError={(error) => {
                 console.warn('Failed to load image:', {
-                  album: recentAlbum.albumTitle,
-                  url: recentAlbum.artwork,
+                  album: suggestedAlbum.albumTitle,
+                  url: suggestedAlbum.artwork,
                   format: imageFormat,
                   error: error?.nativeEvent?.error || error
                 });
@@ -37,8 +37,8 @@ export const SuggestedAlbumCard: React.FC<SuggestedAlbumCardProps> = ({ recentAl
           </View>
         )}
         <View style={styles.content}>
-          <Text style={styles.title} numberOfLines={1}>{recentAlbum.albumTitle}</Text>
-          <Text style={styles.artist} numberOfLines={1}>{recentAlbum.artist}</Text>
+          <Text style={styles.title} numberOfLines={1}>{suggestedAlbum.albumTitle}</Text>
+          <Text style={styles.artist} numberOfLines={1}>{suggestedAlbum.artist}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -53,19 +53,22 @@ const styles = StyleSheet.create({
   card: {
     marginHorizontal: 16,
     marginVertical: 8,
-    borderRadius: 8,
+    // borderRadius: 8,
     overflow: 'hidden',
     backgroundColor: '#ffffff',
     elevation: 3,
     shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 1,
+    shadowRadius: 10,
     shadowOffset: { width: 0, height: 2 },
     width: 160,
+    // borderWidth: 2,
+    // borderColor: '#bebebe'
   },
   coverImage: {
     width: '100%',
     height: 160,
+
   },
   coverPlaceholder: {
     width: '100%',

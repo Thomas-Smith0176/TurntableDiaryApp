@@ -1,6 +1,6 @@
-export interface RecentAlbum {
+export interface SuggestedAlbum {
+  id: string;
   artist: string;
   albumTitle: string;
   artwork: string;
-  timestamp: string;
 }

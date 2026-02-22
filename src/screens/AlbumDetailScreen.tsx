@@ -6,6 +6,7 @@ import DateTimePicker, { useDefaultStyles } from 'react-native-ui-datepicker';
 import * as AlbumService from '../services/AlbumService';
 import Slider from '@react-native-community/slider';
 import { DateModal } from '@/components/Modals/DateModal';
+import { processDate } from '@/functions/processDate';
 
 interface AlbumDetailScreenProps {
   route: any;
@@ -69,7 +70,7 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
           <Text style={styles.albumTitle}>{entry.album.title}</Text>
           <Text style={styles.albumDetails}>{entry.album.artist}</Text>
           <View style={styles.playButtonContainer}>
-            <Text style={styles.albumDetails}>{entry?.album.releaseDate.slice(8, 10)}/{entry?.album.releaseDate.slice(5, 7)}/{entry?.album.releaseDate.slice(0, 4)}</Text>        
+            <Text style={styles.albumDetails}>{processDate(entry.album.releaseDate)}</Text>        
             <TouchableOpacity onPress={() => Linking.openURL(entry.album.url)}>
               <View>
                 <Image source={require('../icons/play-icon.png')} width={20} height={20} style={[styles.icon]} />

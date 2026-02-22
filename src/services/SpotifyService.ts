@@ -1,3 +1,4 @@
+import { SuggestedAlbum } from '@/types/lastFmTypes';
 import {SpotifyAlbum, RecentlyPlayedResponse} from '../types/spotifyTypes';
 import Constants from 'expo-constants';
 
@@ -51,6 +52,45 @@ export const searchAlbums = async (query: string): Promise<SpotifyAlbum[]> => {
         }));
     } catch (error) {
         console.error('Error searching albums:', error);
+        return [];
+    }
+};
+
+export const getTrendingAlbums = async (): Promise<SuggestedAlbum[]> => {
+    try{
+        const config = Constants.expoConfig?.extra || {};
+        const supabaseUrl = config.SUPABASE_URL;
+        const supabaseAnonKey = config.SUPABASE_ANON_KEY;
+
+        if (!supabaseUrl || !supabaseAnonKey) {
+            console.error('Supabase configuration is missing');
+            return [];
+        }
+
+        const response = await fetch(
+            `${supabaseUrl}/functions/v1/get-spotify-trending`,
+            {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${supabaseAnonKey}`,
+                },
+            }
+        );
+
+        const data = await response.json();
+
+        const normalizedAlbums: SuggestedAlbum[] = data.map((item: any) => ({
+            albumTitle: item.name ?? '',
+            artist: item.artist ?? '',
+            artwork: item.artwork ?? '',
+            timestamp: item.id ?? '',
+        }));
+
+        return normalizedAlbums;
+    }
+    catch (error) {
+        console.error('Error getting trending albums:', error);
         return [];
     }
 };

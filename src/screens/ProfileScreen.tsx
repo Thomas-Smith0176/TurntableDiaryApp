@@ -110,6 +110,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 16,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#bebebe'
   },
   statNumber: {
     fontSize: 24,
@@ -127,6 +129,8 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     borderRadius: 8,
     padding: 16,
+    borderWidth: 1,
+    borderColor: '#bebebe'
   },
   sectionTitle: {
     fontSize: 16,

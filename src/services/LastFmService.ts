@@ -1,7 +1,7 @@
-import { RecentAlbum } from "@/types/lastFmTypes";
+import { SuggestedAlbum } from "@/types/lastFmTypes";
 import Constants from 'expo-constants';
 
-export const getRecentAlbums = async (username: string | null): Promise<RecentAlbum[]> => {
+export const getRecentAlbums = async (username: string | null): Promise<SuggestedAlbum[]> => {
   try {
     if (!username) return [];
 
@@ -30,13 +30,14 @@ export const getRecentAlbums = async (username: string | null): Promise<RecentAl
     }
 
     const data = await resp.json().catch(() => []);
+    console.log(data)
     if (!Array.isArray(data)) return [];
 
-    const normalizedAlbums: RecentAlbum[] = data.map((item: any) => ({
-      albumTitle: item.title ?? item.albumTitle ?? '',
+    const normalizedAlbums: SuggestedAlbum[] = data.map((item: any) => ({
+      albumTitle: item.title ?? '',
       artist: item.artist ?? '',
-      artwork: item.artwork ?? item.image ?? '',
-      timestamp: item.date ?? item.timestamp ?? '',
+      artwork: item.artwork ?? '',
+      id: item.date ?? '',
     }));
 
     return normalizedAlbums;

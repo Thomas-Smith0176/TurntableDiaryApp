@@ -1,42 +1,46 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Image, ListRenderItem, ActivityIndicator, Keyboard } from 'react-native';
-import { searchAlbums } from '../services/SpotifyService';
+import { getTrendingAlbums, searchAlbums } from '../services/SpotifyService';
 import { SpotifyAlbum } from '../types/spotifyTypes';
 import { useFocusEffect } from '@react-navigation/native';
 import { SearchResult } from '@/components/Search/SearchResult';
-import { LastfmModal } from '@/components/Modals/LastfmModal';
 import { fetchLastFmUsername } from '@/services/ProfileService';
 import { getRecentAlbums } from '@/services/LastFmService';
-import { RecentAlbum } from '@/types/lastFmTypes';
+import { SuggestedAlbum } from '@/types/lastFmTypes';
 import { SuggestedAlbumCard } from '@/components/Cards/SuggestedAlbumCard';
 
 interface AlbumSearchScreenProps {
-  route: any;
   navigation: any;
 };
-export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ route, navigation }) => {
+
+export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ navigation }) => {
   const [query  , setQuery] = useState<string>('');
   const [results, setResults] = useState<SpotifyAlbum[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingHistory, setLoadingHistory] = useState<boolean>(false);
+  const [loadingPopular, setLoadingPopular] = useState<boolean>(false);
   const [savedName, setSavedName] = useState<string | null>(null);
-  const [recentAlbums, setRecentAlbums] = useState<RecentAlbum[]>([]);
+  const [recentAlbums, setRecentAlbums] = useState<SuggestedAlbum[]>([]);
+  const [popularAlbums, setPopularAlbums] = useState<SuggestedAlbum[]>([]);
 
   const initializeData = useCallback(async () => {
     setLoadingHistory(true);
-    try {
-      const name = await fetchLastFmUsername();
-      setSavedName(name);
+    setLoadingPopular(true);
 
-      if (name) {
-        const albums = await getRecentAlbums(name);
-        setRecentAlbums(albums);
-      }
-    } catch (error) {
-      console.error("Initialization error:", error);
-    } finally {
-      setLoadingHistory(false);
+    const [name, trending] = await Promise.all([
+      fetchLastFmUsername(),
+      getTrendingAlbums()
+    ]);
+
+    setSavedName(name);
+    setPopularAlbums(trending);
+    setLoadingPopular(false);
+
+    if (name) {
+      const history = await getRecentAlbums(name);
+      setRecentAlbums(history);
     }
+    setLoadingHistory(false);
   }, []);
 
   useFocusEffect(
@@ -78,6 +82,7 @@ export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ route, nav
         <View style={styles.header}>
             <Text style={styles.title}>Add Music</Text>
         </View>
+        
         <View style={styles.header}>
           <TextInput
             placeholder="Search for a record..."
@@ -101,6 +106,7 @@ export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ route, nav
           </TouchableOpacity>
         </View>
 
+        {/* Search results */}
         {(results.length > 0 || (query.length > 0 && loading)) && (
           <View style={styles.searchResultsContainer}>
             {loading ? (
@@ -124,52 +130,90 @@ export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ route, nav
             )}
           </View>
         )}
-          
-{results.length === 0 && (
-  <View style={styles.carouselSection}>
-    <View style={styles.carouselContainer}>
-      <Text style={styles.sectionTitle}>Recently Played</Text>
+        
+        {/* Recently played */}
+        {results.length === 0 && (
+          <View>
+            <View style={styles.carouselContainer}>
+              <Text style={styles.sectionTitle}>Recently Played</Text>
 
-      {loadingHistory ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#e9e9e9" style={styles.loading} />
-        </View>
-      ) : (
-        <>
-          {!savedName && (
-            <Text style={styles.emptySubtext}>Link your Last.fm in Profile</Text>
-          )}
-          
-          {savedName && recentAlbums.length === 0 && (
-            <Text style={styles.emptySubtext}>No history found for {savedName}</Text>
-          )}
-
-          {savedName && recentAlbums.length > 0 && (
-            <FlatList
-              data={recentAlbums}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              keyExtractor={(item, index) => item.timestamp || index.toString()}
-              snapToInterval={220}
-              decelerationRate={"fast"}
-              renderItem={({ item }) => (
-                <View style={styles.cardWrapper}>
-                  <SuggestedAlbumCard
-                    recentAlbum={item}
-                    onPress={() => handleRecentAlbumSearch(item.albumTitle, item.artist)}
-                  />
+              {loadingHistory ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#e9e9e9" style={styles.loading} />
                 </View>
+              ) : (
+                <>
+                  {!savedName && (
+                    <Text style={styles.emptySubtext}>Link your Last.fm in Profile</Text>
+                  )}
+                  
+                  {savedName && recentAlbums.length === 0 && (
+                    <Text style={styles.emptySubtext}>No history found for {savedName}</Text>
+                  )}
+
+                  {savedName && recentAlbums.length > 0 && (
+                    <FlatList
+                      data={recentAlbums}
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      keyExtractor={(item, index) => item.id || index.toString()}
+                      snapToInterval={220}
+                      decelerationRate={"fast"}
+                      renderItem={({ item }) => (
+                        <View style={styles.cardWrapper}>
+                          <SuggestedAlbumCard
+                            suggestedAlbum={item}
+                            onPress={() => handleRecentAlbumSearch(item.albumTitle, item.artist)}
+                          />
+                        </View>
+                      )}
+                    />
+                  )}
+                </>
               )}
-            />
-          )}
-        </>
-      )}
-    </View>
-    <View style={styles.emptyState}>
-      <Text style={styles.emptyText}>What have you been listening to?</Text>
-    </View>
-  </View>
-)}
+            </View>
+          </View>
+        )}
+
+        {/* Trending Releases*/}
+        {results.length === 0 && (
+          <View>
+            <View style={styles.carouselContainer}>
+              <Text style={styles.sectionTitle}>Trending Releases</Text>
+
+              {loadingPopular ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#e9e9e9" style={styles.loading} />
+                </View>
+              ) : (
+                <>       
+                  {popularAlbums.length === 0 && (
+                    <Text style={styles.emptySubtext}>Cannot get trending releases</Text>
+                  )}
+
+                  {popularAlbums.length > 0 && (
+                    <FlatList
+                      data={popularAlbums}
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      keyExtractor={(item, index) => item.id || index.toString()}
+                      snapToInterval={220}
+                      decelerationRate={"fast"}
+                      renderItem={({ item }) => (
+                        <View style={styles.cardWrapper}>
+                          <SuggestedAlbumCard
+                            suggestedAlbum={item}
+                            onPress={() => handleRecentAlbumSearch(item.albumTitle, item.artist)}
+                          />
+                        </View>
+                      )}
+                    />
+                  )}
+                </>
+              )}
+            </View>
+          </View>
+        )}
       </View>
      )
 };
@@ -177,7 +221,7 @@ export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ route, nav
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#fff'
   },
   header: {
     backgroundColor: '#fff',
@@ -197,9 +241,6 @@ const styles = StyleSheet.create({
   }, 
   listContent: {
     paddingVertical: 8,
-  },
-  carouselSection: {
-    flex: 1,
   },
 
   emptyText: {
