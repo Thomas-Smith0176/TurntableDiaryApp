@@ -1,20 +1,26 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { Album, DiaryEntry } from '../types';
+import { Album, DiaryEntry, List } from '../types';
 import * as DiaryService from '../services/DiaryService';
 import * as AlbumService from '../services/AlbumService';
+import * as ListService from '../services/ListService';
+import { TopArtist } from '@/types/topArtist';
 
 interface DiaryContextType {
   entries: DiaryEntry[];
   albums: Album[];
+  topRatedAlbums: Album[];
+  topRatedArtists: TopArtist[];
   loadEntries: () => Promise<void>;
   loadAlbums: () => Promise<void>;
+  loadLists: () => Promise<void>;
+  loadTopRatedAlbums: () => Promise<void>;
+  loadTopRatedArtists: () => Promise<void>;
   addEntry: (entry: any) => Promise<void>;
   updateEntry: (id: string, entry: Partial<DiaryEntry>) => Promise<void>;
   deleteEntry: (id: string) => Promise<void>;
   getEntryById: (id: string) => DiaryEntry | undefined;
   getAllEntries: () => DiaryEntry[];
   averageRating: number;
-  getTopRatedAlbumsFromDiary: () => Promise<Album[]>;
 }
 
 const DiaryContext = createContext<DiaryContextType | undefined>(undefined);
@@ -22,16 +28,34 @@ const DiaryContext = createContext<DiaryContextType | undefined>(undefined);
 export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
   const [albums, setAlbums] = useState<Album[]>([]);
+  const [lists, setLists] = useState<List[]>([]);
+  const [topRatedAlbums, setTopRatedAlbums] = useState<Album[]>([]);
+  const [topRatedArtists, setTopRatedArtists] = useState<TopArtist[]>([]);
 
   const loadEntries = async () => {
-    const list = await DiaryService.getDiaryEntries();
-    setEntries(list);
+    const diary = await DiaryService.getDiaryEntries();
+    setEntries(diary);
   };
 
   const loadAlbums = async () => {
-    const list = await AlbumService.getUserAlbums();
-    setAlbums(list);
+    const albums = await AlbumService.getUserAlbums();
+    setAlbums(albums);
   }
+
+  const loadLists = async () => {
+    const lists = await ListService.getUserLists();
+    setLists(lists);
+  }
+
+  const loadTopRatedAlbums = async () => {
+    const albums = await AlbumService.getTopRatedAlbumsFromDiary();
+    setTopRatedAlbums(albums.slice(0, 5));
+  };
+
+  const loadTopRatedArtists = async () => {
+    const artists = await AlbumService.getTopRatedArtistsFromDiary();
+    setTopRatedArtists(artists.slice(0, 5));
+  };
 
   useEffect(() => {
     loadEntries();
@@ -70,7 +94,22 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   return (
     <DiaryContext.Provider
-      value={{ entries, albums, loadEntries, loadAlbums, getAllEntries, addEntry, updateEntry, deleteEntry, getEntryById, averageRating, getTopRatedAlbumsFromDiary: AlbumService.getTopRatedAlbumsFromDiary }}
+      value={{ 
+      entries, 
+      albums, 
+      topRatedAlbums,
+      topRatedArtists,
+      loadEntries, 
+      loadAlbums,
+      loadLists,
+      loadTopRatedAlbums, 
+      loadTopRatedArtists, 
+      getAllEntries, 
+      addEntry, 
+      updateEntry, 
+      deleteEntry, 
+      getEntryById, 
+      averageRating}}
     >
       {children}
     </DiaryContext.Provider>

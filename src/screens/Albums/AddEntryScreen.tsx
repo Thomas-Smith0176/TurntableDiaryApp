@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, Linking, Image} from 'react-native';
-import { useDiary } from '../context/DiaryContext';
-import * as AlbumService from '../services/AlbumService';
+import { useDiary } from '../../context/DiaryContext';
+import * as AlbumService from '../../services/AlbumService';
 import Slider from '@react-native-community/slider';
 import { useFocusEffect } from '@react-navigation/native';
 import { DateModal } from '@/components/Modals/DateModal';
@@ -62,7 +62,7 @@ export const AddEntryScreen: React.FC<AddEntryScreenProps> = ({ route, navigatio
             <Text style={styles.albumDetails}> {processDate(selectedAlbum.releaseDate)}</Text>        
             <TouchableOpacity onPress={() => Linking.openURL(selectedAlbum?.url)}>
               <View>
-                <Image source={require('../icons/play-icon.png')} width={20} height={20} style={[styles.icon]} />
+                <Image source={require('../../icons/play-icon.png')} width={20} height={20} style={[styles.icon]} />
               </View>
             </TouchableOpacity>
           </View>
@@ -105,14 +105,14 @@ export const AddEntryScreen: React.FC<AddEntryScreenProps> = ({ route, navigatio
             <TouchableOpacity
               onPress={() => setIsEditingDate(true)}
             >
-              <Image source={require('../icons/calendar-icon.png')} width={20} height={20} style={[styles.icon]} />
+              <Image source={require('../../icons/calendar-icon.png')} width={20} height={20} style={[styles.icon]} />
             </TouchableOpacity>
           )}
         </View>
       </View>
 
         <TouchableOpacity style={styles.button} onPress={handleAddEntry}>
-          <Image source={require('../icons/save-icon.png')} width={20} height={20} style={[styles.icon]} />
+          <Image source={require('../../icons/save-icon.png')} width={20} height={20} style={[styles.icon]} />
         </TouchableOpacity>
 
       <DateModal

@@ -12,14 +12,14 @@ import { AuthProvider } from '@/context/AuthContext';
 
 function App() {
   return (
-    <SafeAreaProvider>
-      <DiaryProvider>
-        <AuthProvider>
-          <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-          <RootNavigator />
-        </AuthProvider>      
-      </DiaryProvider>
-    </SafeAreaProvider>
+      <SafeAreaProvider>
+        <DiaryProvider>
+          <AuthProvider>
+            <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+            <RootNavigator />
+          </AuthProvider>      
+        </DiaryProvider>
+      </SafeAreaProvider>
   );
 }
 

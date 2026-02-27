@@ -11,7 +11,7 @@ export interface Album {
 export interface DiaryEntry {
   id: string;
   album: Album;
-  rating: number; // 1-5 stars
+  rating: number;
   review: string;
   dateListen: string;
   createdAt: string;
@@ -30,4 +30,12 @@ export interface UserProfile {
 export interface HomePageItem {
     title: string
     description: string
+}
+
+export interface List {
+  id: string;
+  title: string;
+  description: string;
+  user_id: string;
+  created_at: string;
 }

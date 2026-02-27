@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Image, ListRenderItem, ActivityIndicator, Keyboard } from 'react-native';
-import { getTrendingAlbums, searchAlbums } from '../services/SpotifyService';
-import { SpotifyAlbum } from '../types/spotifyTypes';
+import { getTrendingAlbums, searchAlbums } from '../../services/SpotifyService';
+import { SpotifyAlbum } from '../../types/spotifyTypes';
 import { useFocusEffect } from '@react-navigation/native';
 import { SearchResult } from '@/components/Search/SearchResult';
 import { fetchLastFmUsername } from '@/services/ProfileService';
@@ -23,7 +23,7 @@ export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ navigation
   const [recentAlbums, setRecentAlbums] = useState<SuggestedAlbum[]>([]);
   const [popularAlbums, setPopularAlbums] = useState<SuggestedAlbum[]>([]);
 
-  const initializeData = useCallback(async () => {
+  const initialiseData = useCallback(async () => {
     setLoadingHistory(true);
     setLoadingPopular(true);
 
@@ -47,8 +47,8 @@ export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ navigation
     useCallback(() => {
       setQuery('');
       setResults([]);
-      initializeData();
-    }, [initializeData])
+      initialiseData();
+    }, [initialiseData])
   );
 
   const handleSearch = async () => {
@@ -101,7 +101,7 @@ export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ navigation
             disabled={loading}
           >
             {loading ? (<ActivityIndicator size="small" color="#fff" />) : (
-              <Image source={require('../icons/search-icon.png')} width={20} height={20} style={[styles.icon]} />
+              <Image source={require('../../icons/search-icon.png')} width={20} height={20} style={[styles.icon]} />
             )}
           </TouchableOpacity>
         </View>
@@ -130,12 +130,51 @@ export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ navigation
             )}
           </View>
         )}
+
+        {/* Trending Releases*/}
+        {results.length === 0 && (
+          <View>
+            <View style={[styles.carouselContainer]}>
+
+              {loadingPopular ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#e9e9e9" style={styles.loading} />
+                </View>
+              ) : (
+                <>       
+                  <Text style={styles.sectionTitle}>Trending Releases</Text>
+                  {popularAlbums.length === 0 && (
+                    <Text style={styles.emptySubtext}>Cannot get trending releases</Text>
+                  )}
+
+                  {popularAlbums.length > 0 && (
+                    <FlatList
+                      data={popularAlbums}
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      keyExtractor={(item, index) => item.id || index.toString()}
+                      snapToInterval={220}
+                      decelerationRate={"fast"}
+                      renderItem={({ item }) => (
+                        <View style={styles.cardWrapper}>
+                          <SuggestedAlbumCard
+                            suggestedAlbum={item}
+                            onPress={() => handleRecentAlbumSearch(item.albumTitle, item.artist)}
+                          />
+                        </View>
+                      )}
+                    />
+                  )}
+                </>
+              )}
+            </View>
+          </View>
+        )}
         
         {/* Recently played */}
         {results.length === 0 && (
           <View>
-            <View style={styles.carouselContainer}>
-              <Text style={styles.sectionTitle}>Recently Played</Text>
+            <View style={[styles.carouselContainer]}>
 
               {loadingHistory ? (
                 <View style={styles.loadingContainer}>
@@ -143,6 +182,7 @@ export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ navigation
                 </View>
               ) : (
                 <>
+                  <Text style={styles.sectionTitle}>Recently Played</Text>
                   {!savedName && (
                     <Text style={styles.emptySubtext}>Link your Last.fm in Profile</Text>
                   )}
@@ -174,46 +214,6 @@ export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ navigation
             </View>
           </View>
         )}
-
-        {/* Trending Releases*/}
-        {results.length === 0 && (
-          <View>
-            <View style={styles.carouselContainer}>
-              <Text style={styles.sectionTitle}>Trending Releases</Text>
-
-              {loadingPopular ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color="#e9e9e9" style={styles.loading} />
-                </View>
-              ) : (
-                <>       
-                  {popularAlbums.length === 0 && (
-                    <Text style={styles.emptySubtext}>Cannot get trending releases</Text>
-                  )}
-
-                  {popularAlbums.length > 0 && (
-                    <FlatList
-                      data={popularAlbums}
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      keyExtractor={(item, index) => item.id || index.toString()}
-                      snapToInterval={220}
-                      decelerationRate={"fast"}
-                      renderItem={({ item }) => (
-                        <View style={styles.cardWrapper}>
-                          <SuggestedAlbumCard
-                            suggestedAlbum={item}
-                            onPress={() => handleRecentAlbumSearch(item.albumTitle, item.artist)}
-                          />
-                        </View>
-                      )}
-                    />
-                  )}
-                </>
-              )}
-            </View>
-          </View>
-        )}
       </View>
      )
 };
@@ -221,14 +221,11 @@ export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ navigation
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff'
+    backgroundColor: '#f9f9f9'
   },
   header: {
-    backgroundColor: '#fff',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -242,7 +239,6 @@ const styles = StyleSheet.create({
   listContent: {
     paddingVertical: 8,
   },
-
   emptyText: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -254,6 +250,7 @@ const styles = StyleSheet.create({
     color: '#999',
     paddingHorizontal: 40,
     textAlign: 'center',
+    paddingVertical: 40
   },
   searchInput: {
     flex: 1,
@@ -302,18 +299,15 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
   carouselContainer: {
-    paddingTop: 15,
-    height: 315, 
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    height: 300,
+    paddingTop: 15
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginLeft: 16,
     marginBottom: 12,
-    color: '#333',
+    color: '#3b3b3b',
   },
   emptyState: {
     flex: 1,

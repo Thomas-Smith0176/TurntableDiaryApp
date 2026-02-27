@@ -5,10 +5,10 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '@/context/AuthContext';
 import { Album } from '@/types';
 import { LastfmModal } from '@/components/Modals/LastfmModal';
+import { TopArtist } from '@/types/topArtist';
 
 export const ProfileScreen: React.FC = () => {
-  const { entries, albums, averageRating, loadAlbums, getTopRatedAlbumsFromDiary } = useDiary();
-  const [topRatedAlbums, setTopRatedAlbums] = useState<Album[]>([]);
+  const { entries, albums, topRatedAlbums, topRatedArtists, averageRating, loadAlbums, loadTopRatedAlbums, loadTopRatedArtists} = useDiary();
   const [showModal, setShowModal] = useState(false);
 
   const { signOut, user } = useAuth();
@@ -17,13 +17,9 @@ export const ProfileScreen: React.FC = () => {
     useCallback(() => {
       loadAlbums();
       loadTopRatedAlbums();
+      loadTopRatedArtists();
     }, [])
   );
-
-  const loadTopRatedAlbums = async () => {
-    const albums = await getTopRatedAlbumsFromDiary();
-    setTopRatedAlbums(albums.slice(0, 5));
-  };
 
   const handleSignOut = async () => {
     try {
@@ -67,11 +63,26 @@ export const ProfileScreen: React.FC = () => {
                 <Text style={styles.albumTitle}>{album.title}</Text>
                 <Text style={styles.albumArtist}>{album.artist}</Text>
               </View>
-              <Text style={styles.rating}>{album.latestRating.toFixed(1)}</Text>
+              <Text style={styles.rating}>{album.latestRating}</Text>
             </View>
           ))}
         </View>
       )}
+
+      {topRatedArtists.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Top Rated Artists</Text>
+          {topRatedArtists.map(artist => (
+            <View key={artist.artist} style={styles.albumItem}>
+              <View>
+                <Text style={styles.albumTitle}>{artist.artist}</Text>
+              </View>
+              <Text style={styles.rating}>{artist.averageRating}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+
       {showModal && (
         <LastfmModal setShowModal={setShowModal}/> 
       )}
@@ -82,15 +93,12 @@ export const ProfileScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f9f9f9',
   },
   header: {
-    backgroundColor: '#fff',
     paddingHorizontal: 16,
     paddingTop: 50,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    paddingBottom: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -110,13 +118,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 16,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#bebebe'
+    borderColor: '#e8e8e8',
+    borderWidth: 1
   },
   statNumber: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#007AFF',
+    color: '#000000',
   },
   statLabel: {
     fontSize: 12,
@@ -129,8 +137,8 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     borderRadius: 8,
     padding: 16,
-    borderWidth: 1,
-    borderColor: '#bebebe'
+    borderColor: '#e8e8e8',
+    borderWidth: 1
   },
   sectionTitle: {
     fontSize: 16,

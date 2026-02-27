@@ -1,5 +1,7 @@
 import { supabase } from "supabase/supabaseClient";
 import { Album } from "../types";
+import { useDiary } from "@/context/DiaryContext";
+import { TopArtist } from "@/types/topArtist";
 
 export const getUserAlbums = async (): Promise<Album[]> => {
     try {
@@ -103,6 +105,54 @@ export const getTopRatedAlbumsFromDiary = async (): Promise<Album[]> => {
     }
 };
 
+export const getTopRatedArtistsFromDiary = async (): Promise<TopArtist[]> => {
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not logged in');
+
+        // Fetch all diary entries for the user
+        const { data: entries, error } = await supabase
+            .from('diary_entries')
+            .select(`rating, albums(artist)`)
+            .eq('user_id', user.id);
+
+        if (error) throw error;
+        if (!entries || entries.length === 0) return [];
+
+        // Group ratings by Artist to calculate sums and counts
+        const artistStats: { [artistName: string]: { totalRating: number; count: number } } = {};
+
+        entries.forEach((entry: any) => {
+            const artistName = entry.albums?.artist;
+            const rating = entry.rating;
+            
+            // Skip if we couldn't find the album or if there is no rating
+            if (!artistName || rating == null) return; 
+
+            if (!artistStats[artistName]) {
+                artistStats[artistName] = { totalRating: 0, count: 0 };
+            }
+
+            artistStats[artistName].totalRating += rating;
+            artistStats[artistName].count += 1;
+        });
+
+        // Calculate averages, convert to array, and sort
+        const topRatedArtists: TopArtist[] = Object.keys(artistStats).map((artistName) => {
+            const stats = artistStats[artistName];
+            return {
+                artist: artistName,
+                averageRating: Number((stats.totalRating / stats.count).toFixed(1))
+            };
+        }).sort((a, b) => b.averageRating - a.averageRating); 
+
+        return topRatedArtists;
+
+    } catch (error) {
+        console.error('Error fetching top rated artists from diary:', error);
+        return [];
+    }
+};
 export const updateAlbumEntry = async (id: string, updates: Partial<{ latest_rating: number}>) => {
     console.log('Attempting to update album entry with ID:', id, 'and updates:', updates);
     try {

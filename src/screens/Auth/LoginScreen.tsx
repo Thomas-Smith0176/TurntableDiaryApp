@@ -1,37 +1,25 @@
 import { View, Text, StyleSheet, TouchableOpacity, Alert, TextInput, ActivityIndicator} from 'react-native';
 import React, { useState } from 'react';
-import { supabase } from '../../supabase/supabaseClient';
+import { supabase } from '../../../supabase/supabaseClient';
 
-export const SignUpScreen = () => {
+interface LoginScreenProps {
+  navigation: any;
+}
+
+export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
-    const [displayName, setDisplayName] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
-    const [emailProvided, setEmailProvided] = useState<boolean>(true);
-    const [displayNameProvided, setDisplayNameProvided] = useState<boolean>(true);
-    const [passwordProvided, setPasswordProvided] = useState<boolean>(true);
 
-    const handleSignUp = async () => {
+    const handleSignIn = async () => {
         setLoading(true);
-
-        setEmailProvided(!!email);
-        setDisplayNameProvided(!!displayName);
-        setPasswordProvided(!!password);
-
-        const { data, error } = await supabase.auth.signUp({
+        const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
-        options: {
-            data: {
-            display_name: displayName, 
-            },
-        },
         });
 
         if (error) {
-        Alert.alert('Registration Failed', error.message);
-        } else if (data.session === null) {
-        Alert.alert('Success!', 'Please check your inbox for a verification email.');
+        Alert.alert('Login Failed', error.message);
         }
         setLoading(false);
     };
@@ -44,14 +32,6 @@ export const SignUpScreen = () => {
                 value={email} 
                 onChangeText={setEmail} 
             />
-            {!emailProvided && <Text style={{ color: 'red', marginLeft: 12 }}>Email is required</Text>}
-            <TextInput 
-                placeholder="Display Name" 
-                style={styles.input} 
-                value={displayName} 
-                onChangeText={setDisplayName} 
-            />
-            {!displayNameProvided && <Text style={{ color: 'red', marginLeft: 12 }}>Display Name is required</Text>}
             <TextInput 
                 placeholder="Password" 
                 secureTextEntry 
@@ -59,13 +39,16 @@ export const SignUpScreen = () => {
                 value={password} 
                 onChangeText={setPassword} 
             />
-            {!passwordProvided && <Text style={{ color: 'red', marginLeft: 12 }}>Password is required</Text>}
 
             {loading ? (
                 <ActivityIndicator size="large" color="#000"/>
             ) : (
                 <>
-                    <TouchableOpacity onPress={handleSignUp} style={styles.button} disabled={loading}>
+                    <TouchableOpacity onPress={handleSignIn} style={styles.button} disabled={loading}>
+                        <Text style={{ color: '#000000', fontSize: 16}}>Login</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity onPress={() => navigation.navigate('SignUp')} style={styles.button} disabled={loading}>
                         <Text style={{ color: '#000000', fontSize: 16}}>Sign Up</Text>
                     </TouchableOpacity>
                 </>

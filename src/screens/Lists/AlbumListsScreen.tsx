@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, FlatList } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, FlatList, Image } from 'react-native';
 import { useDiary } from '@/context/DiaryContext';
-import * as ListService from '../services/ListService';
+import * as ListService from '../../services/ListService';
+import { List } from '@/types';
 
 interface AlbumListsScreenProps {
   route: any;
@@ -9,7 +10,7 @@ interface AlbumListsScreenProps {
 }
 
 export const AlbumListsScreen: React.FC<AlbumListsScreenProps> = ({ route, navigation }) => {
-  const [lists, setLists] = useState<ListService.List[]>([]);
+  const [lists, setLists] = useState<List[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,10 +47,10 @@ export const AlbumListsScreen: React.FC<AlbumListsScreenProps> = ({ route, navig
     ]);
   };
 
-  const renderListItem = ({ item }: { item: ListService.List }) => (
+  const renderListItem = ({ item }: { item: List }) => (
     <TouchableOpacity
       style={styles.listCard}
-      onPress={() => navigation.navigate('ListDetail', { listId: item.id })}
+      onPress={() => navigation.navigate('ListDetail', { list: item })}
     >
       <View style={styles.listCardContent}>
         <Text style={styles.listTitle}>{item.title}</Text>
@@ -57,12 +58,6 @@ export const AlbumListsScreen: React.FC<AlbumListsScreenProps> = ({ route, navig
           {item.description}
         </Text>
       </View>
-      <TouchableOpacity
-        style={styles.deleteButton}
-        onPress={() => handleDeleteList(item.id)}
-      >
-        <Text style={styles.deleteButtonText}>Delete</Text>
-      </TouchableOpacity>
     </TouchableOpacity>
   );
 
@@ -71,7 +66,7 @@ export const AlbumListsScreen: React.FC<AlbumListsScreenProps> = ({ route, navig
       <View style={styles.header}>
         <Text style={styles.headerTitle}>My Lists</Text>
         <TouchableOpacity style={styles.createButton} onPress={handleCreateList}>
-          <Text style={styles.createButtonText}>+ New List</Text>
+          <Image source={require('../../icons/add-icon.png')} width={30} height={30} style={[styles.icon]} />
         </TouchableOpacity>
       </View>
 
@@ -99,25 +94,22 @@ export const AlbumListsScreen: React.FC<AlbumListsScreenProps> = ({ route, navig
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f9f9f9',
   },
   header: {
-    backgroundColor: '#fff',
     paddingHorizontal: 16,
     paddingTop: 50,
     paddingBottom: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
   },
   createButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#e9e9e9',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 6,
@@ -138,11 +130,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    shadowOffset: { width: 0, height: 1 },
+    borderColor: '#e9e9e9',
+    borderWidth: 1
   },
   listCardContent: {
     flex: 1,
@@ -182,4 +171,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999',
   },
+    icon: {
+        width: 20,
+        height: 20,
+        opacity: 0.4,
+    },
 });

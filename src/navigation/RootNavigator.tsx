@@ -4,16 +4,17 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { HomeScreen } from '../screens/HomeScreen';
-import { AlbumDiaryScreen } from '../screens/AlbumDiaryScreen';
-import { AddEntryScreen } from '../screens/AddEntryScreen';
+import { AlbumDiaryScreen } from '../screens/Albums/AlbumDiaryScreen';
+import { AddEntryScreen } from '../screens/Albums/AddEntryScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
-import { AlbumDetailScreen } from '../screens/AlbumDetailScreen';
-import { AlbumListsScreen } from '../screens/AlbumListsScreen';
-import { CreateListScreen } from '../screens/CreateListScreen';
+import { AlbumDetailScreen } from '../screens/Albums/AlbumDetailScreen';
+import { AlbumListsScreen } from '../screens/Lists/AlbumListsScreen';
+import { CreateListScreen } from '../screens/Lists/CreateListScreen';
 import { useAuth } from '../context/AuthContext';
-import { LoginScreen } from '../screens/LoginScreen';
-import { SignUpScreen } from '../screens/SignUpScreen';
-import { AlbumSearchScreen } from '@/screens/AlbumSearchScreen';
+import { LoginScreen } from '../screens/Auth/LoginScreen';
+import { SignUpScreen } from '../screens/Auth/SignUpScreen';
+import { AlbumSearchScreen } from '../screens/Albums/AlbumSearchScreen';
+import { ListDetailScreen } from '../screens/Lists/ListDetailScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -39,6 +40,11 @@ const HomeStack = () => {
       <Stack.Screen
         name="CreateList"
         component={CreateListScreen}
+        options={{ headerShown: false}}
+      />
+      <Stack.Screen
+        name="ListDetail"
+        component={ListDetailScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

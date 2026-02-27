@@ -53,17 +53,12 @@ const styles = StyleSheet.create({
   card: {
     marginHorizontal: 16,
     marginVertical: 8,
-    // borderRadius: 8,
+    borderRadius: 8,
     overflow: 'hidden',
     backgroundColor: '#ffffff',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOpacity: 1,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 2 },
     width: 160,
-    // borderWidth: 2,
-    // borderColor: '#bebebe'
+    borderColor: '#e8e8e8',
+    borderWidth: 1
   },
   coverImage: {
     width: '100%',

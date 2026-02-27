@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Pressable, Alert, TextInput, Image, Modal, Linking, Platform } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { useDiary } from '../context/DiaryContext';
+import { useDiary } from '../../context/DiaryContext';
 import DateTimePicker, { useDefaultStyles } from 'react-native-ui-datepicker';
-import * as AlbumService from '../services/AlbumService';
+import * as AlbumService from '../../services/AlbumService';
 import Slider from '@react-native-community/slider';
 import { DateModal } from '@/components/Modals/DateModal';
 import { processDate } from '@/functions/processDate';
@@ -22,7 +22,6 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
   const [review, setReview] = useState(entry?.review || '');
   const [rating, setRating] = useState(entry?.rating || 5);
   const [dateListen, setDateListen] = useState(entry?.dateListen || '');
-  const [accentColor, setAccentColor] = useState('#ffffff');
   const defaultStyles = useDefaultStyles();
 
   if (!entry) {
@@ -73,7 +72,7 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
             <Text style={styles.albumDetails}>{processDate(entry.album.releaseDate)}</Text>        
             <TouchableOpacity onPress={() => Linking.openURL(entry.album.url)}>
               <View>
-                <Image source={require('../icons/play-icon.png')} width={20} height={20} style={[styles.icon]} />
+                <Image source={require('../../icons/play-icon.png')} width={20} height={20} style={[styles.icon]} />
               </View>
             </TouchableOpacity>
           </View>
@@ -123,7 +122,7 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
             <TouchableOpacity
               onPress={() => setIsEditingDate(true)}
             >
-              <Image source={require('../icons/calendar-icon.png')} width={20} height={20} style={[styles.icon]} />
+              <Image source={require('../../icons/calendar-icon.png')} width={20} height={20} style={[styles.icon]} />
             </TouchableOpacity>
           )}
         </View>
@@ -140,13 +139,13 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
             setDateListen(entry.dateListen);
           }}
           >
-          <Image source={require('../icons/cancel-icon.png')} width={20} height={20} style={[styles.icon]} />
+          <Image source={require('../../icons/cancel-icon.png')} width={20} height={20} style={[styles.icon]} />
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.button, styles.buttonHalf, {backgroundColor: '#93e6c4'}]}
           onPress={handleUpdate}
           >
-          <Image source={require('../icons/save-icon.png')} width={20} height={20} style={[styles.icon]} />
+          <Image source={require('../../icons/save-icon.png')} width={20} height={20} style={[styles.icon]} />
         </TouchableOpacity>
       </View>
       ) : (
@@ -155,13 +154,13 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
             style={[styles.button, styles.buttonHalf, {backgroundColor: '#d9d9d9'}]}
             onPress={handleDelete}
           >
-            <Image source={require('../icons/delete-icon.png')} width={30} height={30} style={[styles.icon]} />
+            <Image source={require('../../icons/delete-icon.png')} width={30} height={30} style={[styles.icon]} />
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.button, styles.buttonHalf, {backgroundColor: '#c5e9fd'}]}
             onPress={() => setIsEditingReview(true)}
           >
-            <Image source={require('../icons/edit-icon.png')} width={30} height={30} style={[styles.icon]} />
+            <Image source={require('../../icons/edit-icon.png')} width={30} height={30} style={[styles.icon]} />
           </TouchableOpacity>
         </View>
       )}
@@ -331,11 +330,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     backgroundColor: '#e9e9e9',
     paddingVertical: 12,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
   icon: {
     width: 20,

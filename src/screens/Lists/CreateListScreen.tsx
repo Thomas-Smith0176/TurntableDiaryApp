@@ -11,7 +11,7 @@ import {
   FlatList,
 } from 'react-native';
 import { useDiary } from '@/context/DiaryContext';
-import * as ListService from '../services/ListService';
+import * as ListService from '../../services/ListService';
 import { useFocusEffect } from '@react-navigation/native';
 
 interface CreateListScreenProps {
@@ -209,23 +209,23 @@ export const CreateListScreen: React.FC<CreateListScreenProps> = ({ navigation }
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f9f9f9',
   },
   header: {
     backgroundColor: '#fff',
     paddingHorizontal: 16,
-    paddingTop: 20,
+    paddingTop: 50,
     paddingBottom: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: '#e8e8e8',
   },
   closeButton: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#007AFF',
+    color: '#000000',
   },
   headerTitle: {
     fontSize: 18,
@@ -240,11 +240,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 16,
     marginBottom: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    shadowOffset: { width: 0, height: 1 },
+    borderWidth: 1,
+    borderColor: '#e8e8e8'
   },
   label: {
     fontSize: 14,

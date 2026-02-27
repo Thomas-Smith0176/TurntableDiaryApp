@@ -1,18 +1,12 @@
+import { Album, List } from "@/types";
 import { supabase } from "supabase/supabaseClient";
-
-export interface List {
-  id: string;
-  title: string;
-  description: string;
-  user_id: string;
-  created_at: string;
-}
 
 export interface ListEntry {
   id: string;
   list_id: string;
-  album_id: string;
   created_at: string;
+  list_position: string;
+  album: Album;
 }
 
 export const createList = async (title: string, description: string, albumIds: string[]) => {
@@ -35,9 +29,10 @@ export const createList = async (title: string, description: string, albumIds: s
 
     // Create list entries
     if (albumIds.length > 0) {
-      const listEntries = albumIds.map(albumId => ({
+      const listEntries = albumIds.map((albumId, index) => ({
         list_id: listData.id,
         album_id: albumId,
+        list_position: index + 1
       }));
 
       const { error: entriesError } = await supabase
@@ -73,31 +68,57 @@ export const getUserLists = async (): Promise<List[]> => {
   }
 };
 
-export const getListWithEntries = async (listId: string) => {
+export const getListEntries = async (listId: string): Promise<ListEntry[]> => {
   try {
-    const { data: list, error: listError } = await supabase
-      .from('lists')
-      .select('*')
-      .eq('id', listId)
-      .single();
-
-    if (listError) throw listError;
-
-    const { data: entries, error: entriesError } = await supabase
+    const { data: entries, error } = await supabase
       .from('list_entries')
-      .select('*')
-      .eq('list_id', listId);
+      .select(`
+        id,
+        list_id,
+        list_position,
+        created_at,
+        album:albums (
+          id,
+          title,
+          artist,
+          artwork_url,
+          release_date
+        )
+      `)
+      .eq('list_id', listId)
+      .order('list_position', { ascending: true });
 
-    if (entriesError) throw entriesError;
+    if (error) throw error;
 
-    return { list, entries };
+    const mappedEntries: ListEntry[] = entries.map((row: any) => {
+      const albumData = row.album;
+      return {
+        id: row.id,
+        list_id: row.list_id,
+        list_position: row.list_position,
+        created_at: row.created_at,
+        album: {
+            id: albumData.id,
+            title: albumData?.title ?? '',
+            artist: albumData?.artist ?? '',
+            releaseDate: albumData?.release_date ?? '',
+            artwork: albumData?.artwork_url ?? undefined,
+            url: albumData?.album_url ?? undefined,
+            latestRating: albumData?.latest_rating ?? 0,
+        },
+      }
+    })
+
+    return mappedEntries;
+
   } catch (error) {
-    console.error('Error fetching list with entries:', error);
-    return null;
+    console.error('Error fetching list entries:', error);
+    return [];
   }
 };
 
 export const deleteList = async (listId: string) => {
+  console.log('deleting list with id: ', listId)
   try {
     // Delete list entries first
     const { error: entriesError } = await supabase
@@ -106,6 +127,7 @@ export const deleteList = async (listId: string) => {
       .eq('list_id', listId);
 
     if (entriesError) throw entriesError;
+    console.log("deleted entries");
 
     // Delete the list
     const { error: listError } = await supabase
@@ -114,6 +136,7 @@ export const deleteList = async (listId: string) => {
       .eq('id', listId);
 
     if (listError) throw listError;
+    console.log('deleted list')
 
     return { success: true };
   } catch (error) {
@@ -122,14 +145,24 @@ export const deleteList = async (listId: string) => {
   }
 };
 
-export const updateList = async (listId: string, title: string, description: string) => {
+export const updateList = async (listId: string, listUpdates: Partial<{ title: string, description: string}>, entriesUpdates: ListEntry[]) => {
   try {
-    const { error } = await supabase
+    const { error: listError } = await supabase
       .from('lists')
-      .update({ title, description })
+      .update(listUpdates)
       .eq('id', listId);
 
-    if (error) throw error;
+    if (listError) throw listError;
+
+    entriesUpdates.forEach(async (entry) => {
+      const { error: entriesError } = await supabase
+        .from('list_entries')
+        .update(entry)
+        .eq('id', entry.id)
+
+        if (entriesError) throw entriesError;
+    })
+
     return { success: true };
   } catch (error) {
     console.error('Error updating list:', error);

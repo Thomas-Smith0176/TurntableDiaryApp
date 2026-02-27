@@ -56,17 +56,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f9f9f9',
   },
   header: {
-    backgroundColor: '#fff',
     paddingHorizontal: 16,
     paddingTop: 50,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    paddingBottom: 10,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
   },
   headerTitle: {
@@ -100,11 +97,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     overflow: 'hidden',
     backgroundColor: '#ffffff',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
   },
   gradientOverlay: {
     position: 'absolute',
