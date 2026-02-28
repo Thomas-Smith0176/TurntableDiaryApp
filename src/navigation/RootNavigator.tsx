@@ -50,7 +50,7 @@ const HomeStack = () => {
       <Stack.Screen
         name="AlbumDetail"
         component={AlbumDetailScreen}
-        options={{ title: '' }}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );
