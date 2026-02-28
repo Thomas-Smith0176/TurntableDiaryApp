@@ -16,11 +16,13 @@
       "package": "com.jukeboxdiaryapp",
       "permissions": []
     },
-    "web": {
-    },
+    "web": {},
     "extra": {
       "SUPABASE_URL": "https://fjcxyffxmswvdwuertou.supabase.co",
-      "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqY3h5ZmZ4bXN3dmR3dWVydG91Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MjgxNzQsImV4cCI6MjA4NDUwNDE3NH0.-ege_WqQtaIx08uVtwZFPBOLPU92JkMB1_YmUy6P4eg"
+      "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqY3h5ZmZ4bXN3dmR3dWVydG91Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MjgxNzQsImV4cCI6MjA4NDUwNDE3NH0.-ege_WqQtaIx08uVtwZFPBOLPU92JkMB1_YmUy6P4eg",
+      "eas": {
+        "projectId": "48cd1521-14ad-401c-a9cd-5684f97a800b"
+      }
     }
   }
 }
