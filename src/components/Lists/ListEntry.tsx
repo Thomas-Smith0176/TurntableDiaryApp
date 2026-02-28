@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, LayoutAnimation } from 'react-native';
 import { ListEntry } from '@/services/ListService';
 
-interface ListEntryCardProps {
+interface UIListEntryProps {
   entry: ListEntry;
   index: number;
   isEditingList: Boolean;
@@ -10,20 +10,28 @@ interface ListEntryCardProps {
   setListEntries: React.Dispatch<React.SetStateAction<ListEntry[]>>;
 }
 
-export const ListEntryCard: React.FC<ListEntryCardProps> = ({ entry, index, isEditingList, listEntries, setListEntries }) => {
+export const UIListEntry: React.FC<UIListEntryProps> = ({ entry, index, isEditingList, listEntries, setListEntries }) => {
 
     const moveItem = (index: number, direction: 'up' | 'down') => {
         const newEntries = [...listEntries];
         const targetIndex = direction === 'up' ? index - 1 : index + 1;
 
         if (targetIndex < 0 || targetIndex >= newEntries.length) return;
-
-        const temp = newEntries[index];
-        newEntries[index] = newEntries[targetIndex];
-        newEntries[targetIndex] = temp;
-
+        
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setListEntries(newEntries);
+        
+        setListEntries((prev: ListEntry[]) => {
+            const newEntries = [...prev];
+
+            const [movedItem] = newEntries.splice(index, 1);
+            newEntries.splice(targetIndex, 0, movedItem);
+
+            newEntries[index] = { ...newEntries[index], list_position: index };
+            newEntries[targetIndex] = { ...newEntries[targetIndex], list_position: targetIndex };
+
+            return newEntries;
+        })
+        
     };
 
     return (
@@ -37,13 +45,14 @@ export const ListEntryCard: React.FC<ListEntryCardProps> = ({ entry, index, isEd
                     <Text style={styles.listEntryTitle}>{entry.album.title}</Text>
                     <Text style={styles.listEntryArtist}>{entry.album.artist}</Text>
                 </View>
-                {!isEditingList ? (<Text style={styles.listEntryPosition}>{entry.list_position}</Text>)
+                {!isEditingList ? (<Text style={styles.listEntryPosition}>{index + 1}</Text>)
                 : (
-                    <View>
+                    <View style={styles.reorderContainer}>
                         <TouchableOpacity 
                         onPress={() => moveItem(index, 'up')}
                         disabled={index === 0}
-                        style={index === 0 && { opacity: 0.3 }}
+                        hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                        style={[styles.touchTarget, index === 0 && { opacity: 0.3 }]}
                         >
                         <Image source={require('../../icons/chevron-up-icon.png')} style={styles.icon} />
                         </TouchableOpacity>
@@ -51,7 +60,8 @@ export const ListEntryCard: React.FC<ListEntryCardProps> = ({ entry, index, isEd
                         <TouchableOpacity 
                         onPress={() => moveItem(index, 'down')}
                         disabled={index === listEntries.length - 1}
-                        style={index === listEntries.length - 1 && { opacity: 0.3 }}
+                        hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                        style={[styles.touchTarget, index === listEntries.length - 1 && { opacity: 0.3 }]}
                         >
                         <Image source={require('../../icons/chevron-down-icon.png')} style={styles.icon} />
                         </TouchableOpacity>
@@ -105,4 +115,14 @@ const styles = StyleSheet.create({
         height: 20,
         opacity: 0.4,
     },
+    reorderContainer: {
+        height: 100, 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        paddingVertical: 10,
+        paddingRight: 10,
+    },
+    touchTarget: {
+        padding: 10, 
+    }
 });

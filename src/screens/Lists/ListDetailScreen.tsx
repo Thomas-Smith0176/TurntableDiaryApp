@@ -1,9 +1,9 @@
 import { getListEntries, ListEntry } from "@/services/ListService";
 import { useCallback, useEffect, useState } from "react";
-import { Alert, FlatList, ListRenderItem, Image, ScrollView, StyleSheet, Text, TouchableOpacity, LayoutAnimation, Platform, UIManager, View } from "react-native";
+import { Alert, FlatList, ListRenderItem, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, LayoutAnimation, Platform, UIManager, View } from "react-native";
 import * as ListService from '../../services/ListService';
 import { useFocusEffect } from "@react-navigation/native";
-import { ListEntryCard } from "@/components/Cards/ListEntryCard";
+import { UIListEntry } from "../../components/Lists/ListEntry";
 
 interface ListDetailScreenProps {
   route: any;
@@ -17,9 +17,12 @@ if (Platform.OS === 'android') {
 export const ListDetailScreen: React.FC<ListDetailScreenProps> = ({ route, navigation }) => {
 
   const [listEntries, setListEntries] = useState<ListEntry[]>([])
+  const [initialListEntries, setInitialListEntries] = useState<ListEntry[]>(listEntries);
   const [loading, setLoading] = useState<Boolean>(false);
-  const [isEditingList, setIsEditingList] = useState<Boolean>(false)
+  const [isEditingList, setIsEditingList] = useState<Boolean>(false);
   const { list } = route.params;
+  const [listTitle, setListTitle] = useState<string>(list.title);
+  const [listDescription, setListDescription] = useState<string>(list.description)
 
   const initialiseData = useCallback(async () => {
     setLoading(true);
@@ -41,8 +44,8 @@ export const ListDetailScreen: React.FC<ListDetailScreenProps> = ({ route, navig
 
   const handleDelete = () => {
     Alert.alert(
-      'Delete Album',
-      'Are you sure you want to delete this entry?',
+      'Delete List',
+      'Are you sure you want to delete this list?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -59,7 +62,7 @@ export const ListDetailScreen: React.FC<ListDetailScreenProps> = ({ route, navig
 
   const handleUpdate = async () => {
     setLoading(true);
-    await ListService.updateList(list.id, {title: list.title, description: list.description}, listEntries);
+    ListService.updateList(list.id, {title: listTitle, description: listDescription}, listEntries);
     setLoading(false);
     setIsEditingList(false);
   };
@@ -67,7 +70,7 @@ export const ListDetailScreen: React.FC<ListDetailScreenProps> = ({ route, navig
   const renderItem: ListRenderItem<ListEntry> = ({item, index}) => {
     return (
       <View>
-        <ListEntryCard entry={item} index={index} isEditingList={isEditingList} listEntries={listEntries} setListEntries={setListEntries}/>
+        <UIListEntry entry={item} index={index} isEditingList={isEditingList} listEntries={listEntries} setListEntries={setListEntries}/>
       </View>
     )
   }
@@ -75,10 +78,29 @@ export const ListDetailScreen: React.FC<ListDetailScreenProps> = ({ route, navig
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.listTitle}>{list.title}</Text>
-          <Text style={styles.listDescription}>
-            {list.description}
-          </Text>
+          {isEditingList ? (
+            <TextInput
+              numberOfLines={1}
+              style={styles.listInput}
+              value={listTitle}
+              onChangeText={setListTitle}
+              textAlignVertical="top"
+              />
+          ) : (
+            <Text style={styles.listTitle}>{listTitle}</Text>
+          )}
+          {isEditingList ? (
+            <TextInput
+              style={styles.listInput}
+              multiline
+              numberOfLines={4}
+              value={listDescription}
+              onChangeText={setListDescription}
+              textAlignVertical="top"
+              />
+          ) : (
+            <Text style={styles.listDescription}>{listDescription}</Text>
+          )}
         </View>
         {!isEditingList ? (
         <View style={styles.actionsRow}>
@@ -90,7 +112,10 @@ export const ListDetailScreen: React.FC<ListDetailScreenProps> = ({ route, navig
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.button, styles.buttonHalf, {backgroundColor: '#c5e9fd'}]}
-            onPress={() => setIsEditingList(true)}
+            onPress={() => {
+              setIsEditingList(true)
+              setInitialListEntries(listEntries)
+          }}
           >
             <Image source={require('../../icons/edit-icon.png')} width={30} height={30} style={[styles.icon]} />
           </TouchableOpacity>
@@ -99,13 +124,16 @@ export const ListDetailScreen: React.FC<ListDetailScreenProps> = ({ route, navig
         <View style={styles.actionsRow}>
           <TouchableOpacity
             style={[styles.button, styles.buttonHalf, {backgroundColor: '#d9d9d9'}]}
-            onPress={() => setIsEditingList(false)}
+            onPress={() => {
+              setIsEditingList(false) 
+              setListEntries(initialListEntries)
+            }}
           >
             <Image source={require('../../icons/cancel-icon.png')} width={30} height={30} style={[styles.icon]} />
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.button, styles.buttonHalf, {backgroundColor: '#c5e9fd'}]}
-            onPress={() => setIsEditingList(true)}
+            style={[styles.button, styles.buttonHalf, {backgroundColor: '#93e6c4'}]}
+            onPress={handleUpdate}
           >
             <Image source={require('../../icons/save-icon.png')} width={30} height={30} style={[styles.icon]} />
           </TouchableOpacity>
@@ -164,9 +192,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#e9e9e9',
     paddingVertical: 12,
   },
-   icon: {
+  icon: {
         width: 20,
         height: 20,
         opacity: 0.4,
-    },
+  },
+  listInput: {
+    backgroundColor: '#f9f9f9',
+    borderRadius: 6,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    fontSize: 14,
+    width: '100%',
+    marginTop: 15,
+  },
 });

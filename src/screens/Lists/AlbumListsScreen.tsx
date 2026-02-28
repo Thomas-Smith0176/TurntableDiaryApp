@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, FlatList, Image } from 'react-native';
 import { useDiary } from '@/context/DiaryContext';
 import * as ListService from '../../services/ListService';
 import { List } from '@/types';
+import { useFocusEffect } from '@react-navigation/native';
 
 interface AlbumListsScreenProps {
   route: any;
@@ -13,9 +14,11 @@ export const AlbumListsScreen: React.FC<AlbumListsScreenProps> = ({ route, navig
   const [lists, setLists] = useState<List[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadLists();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadLists();
+    }, [])
+  );
 
   const loadLists = async () => {
     setLoading(true);
@@ -26,25 +29,6 @@ export const AlbumListsScreen: React.FC<AlbumListsScreenProps> = ({ route, navig
 
   const handleCreateList = () => {
     navigation.navigate('CreateList');
-  };
-
-  const handleDeleteList = (listId: string) => {
-    Alert.alert('Delete List', 'Are you sure you want to delete this list?', [
-      { text: 'Cancel', onPress: () => {} },
-      {
-        text: 'Delete',
-        onPress: async () => {
-          const result = await ListService.deleteList(listId);
-          if (result.success) {
-            loadLists();
-            Alert.alert('Success', 'List deleted');
-          } else {
-            Alert.alert('Error', result.error || 'Failed to delete list');
-          }
-        },
-        style: 'destructive',
-      },
-    ]);
   };
 
   const renderListItem = ({ item }: { item: List }) => (

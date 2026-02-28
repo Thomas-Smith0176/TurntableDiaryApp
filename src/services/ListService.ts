@@ -5,7 +5,7 @@ export interface ListEntry {
   id: string;
   list_id: string;
   created_at: string;
-  list_position: string;
+  list_position: number;
   album: Album;
 }
 
@@ -145,7 +145,11 @@ export const deleteList = async (listId: string) => {
   }
 };
 
-export const updateList = async (listId: string, listUpdates: Partial<{ title: string, description: string}>, entriesUpdates: ListEntry[]) => {
+export const updateList = async (
+  listId: string, 
+  listUpdates: Partial<{ title: string, description: string }>, 
+  entriesUpdates: ListEntry[]
+) => {
   try {
     const { error: listError } = await supabase
       .from('lists')
@@ -154,14 +158,18 @@ export const updateList = async (listId: string, listUpdates: Partial<{ title: s
 
     if (listError) throw listError;
 
-    entriesUpdates.forEach(async (entry) => {
-      const { error: entriesError } = await supabase
-        .from('list_entries')
-        .update(entry)
-        .eq('id', entry.id)
+    const formattedEntries = entriesUpdates.map(entry => ({
+      id: entry.id,
+      list_id: listId,
+      album_id: entry.album.id,
+      list_position: entry.list_position
+    }));
 
-        if (entriesError) throw entriesError;
-    })
+    const { error: entriesError } = await supabase
+      .from('list_entries')
+      .upsert(formattedEntries, { onConflict: 'id' });
+
+    if (entriesError) throw entriesError;
 
     return { success: true };
   } catch (error) {
