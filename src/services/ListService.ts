@@ -3,13 +3,15 @@ import { supabase } from "supabase/supabaseClient";
 
 export interface ListEntry {
   id: string;
-  list_id: string;
-  created_at: string;
-  list_position: number;
-  album: Album;
+  listId: number;
+  createdAt?: string;
+  listPosition: number;
+  albumTitle: string;
+  artist: string;
+  artwork: string;
 }
 
-export const createList = async (title: string, description: string, albumIds: string[]) => {
+export const createList = async (title: string, description: string, albums: string[]) => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not logged in');
@@ -77,13 +79,9 @@ export const getListEntries = async (listId: string): Promise<ListEntry[]> => {
         list_id,
         list_position,
         created_at,
-        album:albums (
-          id,
-          title,
-          artist,
-          artwork_url,
-          release_date
-        )
+        album_title,
+        artist_name,
+        artwork_url
       `)
       .eq('list_id', listId)
       .order('list_position', { ascending: true });
@@ -91,21 +89,14 @@ export const getListEntries = async (listId: string): Promise<ListEntry[]> => {
     if (error) throw error;
 
     const mappedEntries: ListEntry[] = entries.map((row: any) => {
-      const albumData = row.album;
       return {
         id: row.id,
-        list_id: row.list_id,
-        list_position: row.list_position,
-        created_at: row.created_at,
-        album: {
-            id: albumData.id,
-            title: albumData?.title ?? '',
-            artist: albumData?.artist ?? '',
-            releaseDate: albumData?.release_date ?? '',
-            artwork: albumData?.artwork_url ?? undefined,
-            url: albumData?.album_url ?? undefined,
-            latestRating: albumData?.latest_rating ?? 0,
-        },
+        listId: row.list_id,
+        listPosition: row.list_position,
+        createdAt: row.created_at,
+        albumTitle: row.album_title,
+        artist: row.artist_name ?? '',
+        artwork: row.artwork_url ?? '',
       }
     })
 
@@ -159,10 +150,10 @@ export const updateList = async (
     if (listError) throw listError;
 
     const formattedEntries = entriesUpdates.map(entry => ({
-      id: entry.id,
       list_id: listId,
-      album_id: entry.album.id,
-      list_position: entry.list_position
+      album_title: entry.albumTitle,
+      artist_name: entry.artist,
+      list_position: entry.listPosition
     }));
 
     const { error: entriesError } = await supabase

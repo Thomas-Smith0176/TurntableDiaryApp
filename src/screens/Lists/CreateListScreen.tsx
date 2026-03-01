@@ -9,34 +9,27 @@ import {
   TextInput,
   Modal,
   FlatList,
+  Image,
+  ActivityIndicator,
 } from 'react-native';
 import { useDiary } from '@/context/DiaryContext';
 import * as ListService from '../../services/ListService';
 import { useFocusEffect } from '@react-navigation/native';
+import { SpotifyAlbum } from '@/types/spotifyTypes';
+import { UISearchBar } from '@/components/Search/UISearchBar';
+import { UISearchResults } from '@/components/Search/UISearchResults';
+import { EnumScreenTypes } from '@/types/enums/EnumScreenType';
 
 interface CreateListScreenProps {
   navigation: any;
 }
 
 export const CreateListScreen: React.FC<CreateListScreenProps> = ({ navigation }) => {
-  const { albums, loadAlbums } = useDiary();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [selectedAlbums, setSelectedAlbums] = useState<string[]>([]);
-  const [showAlbumModal, setShowAlbumModal] = useState(false);
+  const [selectedAlbums, setSelectedAlbums] = useState<SpotifyAlbum[]>([]);
   const [loading, setLoading] = useState(false);
-
-  useFocusEffect(
-    useCallback(() => {
-      loadAlbums();
-    }, [])
-  );
-
-  const handleAddAlbum = (albumId: string) => {
-    if (!selectedAlbums.includes(albumId)) {
-      setSelectedAlbums([...selectedAlbums, albumId]);
-    }
-  };
+  const [results, setResults] = useState<SpotifyAlbum[]>([]);
 
   const handleRemoveAlbum = (albumId: string) => {
     setSelectedAlbums(selectedAlbums.filter(id => id !== albumId));
@@ -65,34 +58,6 @@ export const CreateListScreen: React.FC<CreateListScreenProps> = ({ navigation }
     }
   };
 
-  const getSelectedAlbumDetails = () => {
-    return albums.filter(album => selectedAlbums.includes(album.id));
-  };
-
-  const renderAlbumOption = ({ item }: { item: any }) => {
-    const isSelected = selectedAlbums.includes(item.id);
-    return (
-      <TouchableOpacity
-        style={[styles.albumOption, isSelected && styles.albumOptionSelected]}
-        onPress={() => {
-          if (isSelected) {
-            handleRemoveAlbum(item.id);
-          } else {
-            handleAddAlbum(item.id);
-          }
-          setShowAlbumModal(false);
-        }}
-      >
-        <Text style={styles.albumOptionText}>
-          {item.title} - {item.artist}
-        </Text>
-        {isSelected && <Text style={styles.checkmark}>✓</Text>}
-      </TouchableOpacity>
-    );
-  };
-
-  const selectedAlbumsData = getSelectedAlbumDetails();
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -103,7 +68,7 @@ export const CreateListScreen: React.FC<CreateListScreenProps> = ({ navigation }
         <View style={{ width: 30 }} />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <View style={styles.content}>
         <View style={styles.section}>
           <Text style={styles.label}>List Title</Text>
           <TextInput
@@ -128,21 +93,35 @@ export const CreateListScreen: React.FC<CreateListScreenProps> = ({ navigation }
           />
         </View>
 
+        <UISearchBar setResults={setResults}/>
+
+        {(results.length > 0 ) ? (
+          <UISearchResults
+            screen={EnumScreenTypes.List}
+            results={results} 
+            navigation={navigation}
+            selectedAlbums={selectedAlbums}
+            setSelectedAlbums={setSelectedAlbums}
+            setResults={setResults}
+            onClear={() => {
+              setResults([]);
+            }}/>
+        ) : (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.label}>Albums in List</Text>
             <Text style={styles.albumCount}>{selectedAlbums.length}</Text>
           </View>
 
-          {selectedAlbumsData.length === 0 ? (
+          {selectedAlbums.length === 0 ? (
             <Text style={styles.emptyText}>No albums added yet</Text>
           ) : (
             <View style={styles.selectedAlbumsList}>
-              {selectedAlbumsData.map(album => (
+              {selectedAlbums.map(album => (
                 <View key={album.id} style={styles.selectedAlbumItem}>
                   <View style={styles.selectedAlbumInfo}>
                     <Text style={styles.selectedAlbumTitle} numberOfLines={1}>
-                      {album.title}
+                      {album.name}
                     </Text>
                     <Text style={styles.selectedAlbumArtist} numberOfLines={1}>
                       {album.artist}
@@ -158,15 +137,9 @@ export const CreateListScreen: React.FC<CreateListScreenProps> = ({ navigation }
               ))}
             </View>
           )}
-
-          <TouchableOpacity
-            style={styles.addAlbumButton}
-            onPress={() => setShowAlbumModal(true)}
-          >
-            <Text style={styles.addAlbumButtonText}>+ Add Album</Text>
-          </TouchableOpacity>
         </View>
-      </ScrollView>
+        )}
+      </View>
 
       <View style={styles.footer}>
         <TouchableOpacity
@@ -177,31 +150,6 @@ export const CreateListScreen: React.FC<CreateListScreenProps> = ({ navigation }
           <Text style={styles.saveButtonText}>{loading ? 'Saving...' : 'Save List'}</Text>
         </TouchableOpacity>
       </View>
-
-      <Modal
-        visible={showAlbumModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowAlbumModal(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Albums</Text>
-              <TouchableOpacity onPress={() => setShowAlbumModal(false)}>
-                <Text style={styles.modalCloseButton}>✕</Text>
-              </TouchableOpacity>
-            </View>
-
-            <FlatList
-              data={albums}
-              renderItem={renderAlbumOption}
-              keyExtractor={item => item.id}
-              style={styles.albumList}
-            />
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 };

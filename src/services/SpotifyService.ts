@@ -13,8 +13,6 @@ export const searchAlbums = async (query: string): Promise<SpotifyAlbum[]> => {
             return [];
         }
 
-        console.log('Searching for:', query);
-
         const response = await fetch(
             `${supabaseUrl}/functions/v1/search-spotify`,
             {
@@ -35,7 +33,6 @@ export const searchAlbums = async (query: string): Promise<SpotifyAlbum[]> => {
 
         const data = await response.json();
 
-        // Handle the response data structure
         if (!data || !Array.isArray(data)) {
             console.warn('Unexpected response format from Spotify search:', data);
             return [];

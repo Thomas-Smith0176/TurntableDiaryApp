@@ -26,8 +26,8 @@ export const UIListEntry: React.FC<UIListEntryProps> = ({ entry, index, isEditin
             const [movedItem] = newEntries.splice(index, 1);
             newEntries.splice(targetIndex, 0, movedItem);
 
-            newEntries[index] = { ...newEntries[index], list_position: index };
-            newEntries[targetIndex] = { ...newEntries[targetIndex], list_position: targetIndex };
+            newEntries[index] = { ...newEntries[index], listPosition: index };
+            newEntries[targetIndex] = { ...newEntries[targetIndex], listPosition: targetIndex };
 
             return newEntries;
         })
@@ -37,13 +37,13 @@ export const UIListEntry: React.FC<UIListEntryProps> = ({ entry, index, isEditin
     return (
         <View style={styles.listEntryCard}>
             <Image
-                source={{ uri: entry.album.artwork }}
+                source={{ uri: entry.artwork }}
                 style={styles.coverImage}
                 />
             <View style={styles.listEntryCardContent}>
                 <View style={styles.listEntryCardDetails}>
-                    <Text style={styles.listEntryTitle}>{entry.album.title}</Text>
-                    <Text style={styles.listEntryArtist}>{entry.album.artist}</Text>
+                    <Text style={styles.listEntryTitle}>{entry.albumTitle}</Text>
+                    <Text style={styles.listEntryArtist}>{entry.artist}</Text>
                 </View>
                 {!isEditingList ? (<Text style={styles.listEntryPosition}>{index + 1}</Text>)
                 : (

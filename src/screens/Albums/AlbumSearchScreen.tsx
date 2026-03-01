@@ -3,20 +3,21 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Image, L
 import { getTrendingAlbums, searchAlbums } from '../../services/SpotifyService';
 import { SpotifyAlbum } from '../../types/spotifyTypes';
 import { useFocusEffect } from '@react-navigation/native';
-import { SearchResult } from '@/components/Search/SearchResult';
+import { SearchResult } from '@/components/Search/UISearchResult';
 import { fetchLastFmUsername } from '@/services/ProfileService';
 import { getRecentAlbums } from '@/services/LastFmService';
 import { SuggestedAlbum } from '@/types/lastFmTypes';
 import { SuggestedAlbumCard } from '@/components/Cards/SuggestedAlbumCard';
+import { UISearchResults } from '@/components/Search/UISearchResults';
+import { EnumScreenTypes } from '@/types/enums/EnumScreenType';
+import { UISearchBar } from '@/components/Search/UISearchBar';
 
 interface AlbumSearchScreenProps {
   navigation: any;
 };
 
 export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ navigation }) => {
-  const [query  , setQuery] = useState<string>('');
   const [results, setResults] = useState<SpotifyAlbum[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
   const [loadingHistory, setLoadingHistory] = useState<boolean>(false);
   const [loadingPopular, setLoadingPopular] = useState<boolean>(false);
   const [savedName, setSavedName] = useState<string | null>(null);
@@ -45,27 +46,10 @@ export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ navigation
 
   useFocusEffect(
     useCallback(() => {
-      setQuery('');
       setResults([]);
       initialiseData();
     }, [initialiseData])
   );
-
-  const handleSearch = async () => {
-    Keyboard.dismiss();
-
-    if (query.length > 0) {
-        setLoading(true);
-        try {
-          const albums = await searchAlbums(query);
-          setResults(albums);
-        } catch (error) {
-          console.error('Error searching albums:', error);
-        } finally {
-          setLoading(false);
-        }
-    }
-  };
 
   const handleRecentAlbumSearch = async (albumTitle: string, artist: string) => {
     await searchAlbums(`${albumTitle} ${artist}`).then((albums) => {
@@ -73,62 +57,25 @@ export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ navigation
     });
   };
 
-  const renderAlbumItem: ListRenderItem<SpotifyAlbum> = ({ item }) => (
-    <SearchResult item={item} navigation={navigation}/>
-  );
-
   return (
       <View style={styles.container}>
         <View style={styles.header}>
             <Text style={styles.title}>Add Music</Text>
         </View>
         
-        <View style={styles.header}>
-          <TextInput
-            placeholder="Search for a record..."
-            value={query}
-            onChangeText={setQuery}
-            onSubmitEditing={handleSearch}
-            style={styles.searchInput}
-            returnKeyType="search" 
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-
-          <TouchableOpacity 
-            style={styles.searchButton} 
-            onPress={handleSearch}
-            disabled={loading}
-          >
-            {loading ? (<ActivityIndicator size="small" color="#fff" />) : (
-              <Image source={require('../../icons/search-icon.png')} width={20} height={20} style={[styles.icon]} />
-            )}
-          </TouchableOpacity>
+        <View>
+          <UISearchBar setResults={setResults}/>
         </View>
 
         {/* Search results */}
-        {(results.length > 0 || (query.length > 0 && loading)) && (
-          <View style={styles.searchResultsContainer}>
-            {loading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#c5e9fd" />
-              </View>
-            ) : results.length > 0 ? (
-              <FlatList
-                data={results}
-                keyExtractor={(item) => item.id}
-                renderItem={renderAlbumItem}
-                scrollEnabled={true}
-                nestedScrollEnabled={true}
-                style={{ flex: 1 }}
-                contentContainerStyle={styles.resultsListContent}
-              />
-            ) : (
-              <View style={styles.loadingContainer}>
-                <Text style={styles.emptyText}>No albums found</Text>
-              </View>
-            )}
-          </View>
+        {(results.length > 0 ) && (
+          <UISearchResults
+            screen={EnumScreenTypes.Album}
+            results={results} 
+            navigation={navigation}
+            onClear={() => {
+              setResults([]);
+            }}/>
         )}
 
         {/* Trending Releases*/}
@@ -266,11 +213,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  searchButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
   },
   searchResultsContainer: {
     flex: 1,

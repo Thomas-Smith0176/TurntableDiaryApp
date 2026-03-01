@@ -1,9 +1,13 @@
 import { getListEntries, ListEntry } from "@/services/ListService";
 import { useCallback, useEffect, useState } from "react";
-import { Alert, FlatList, ListRenderItem, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, LayoutAnimation, Platform, UIManager, View } from "react-native";
+import { Alert, ActivityIndicator, FlatList, ListRenderItem, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, LayoutAnimation, Platform, UIManager, View, Keyboard } from "react-native";
 import * as ListService from '../../services/ListService';
 import { useFocusEffect } from "@react-navigation/native";
-import { UIListEntry } from "../../components/Lists/ListEntry";
+import { UIListEntry } from "../../components/Lists/UIListEntry";
+import { UISearchResults } from "@/components/Search/UISearchResults";
+import { SpotifyAlbum } from "@/types/spotifyTypes";
+import { searchAlbums } from "@/services/SpotifyService";
+import { EnumScreenTypes } from "@/types/enums/EnumScreenType";
 
 interface ListDetailScreenProps {
   route: any;
@@ -15,14 +19,16 @@ if (Platform.OS === 'android') {
 }
 
 export const ListDetailScreen: React.FC<ListDetailScreenProps> = ({ route, navigation }) => {
-
+  const [query  , setQuery] = useState<string>('');
+  const [results, setResults] = useState<SpotifyAlbum[]>([]);
   const [listEntries, setListEntries] = useState<ListEntry[]>([])
   const [initialListEntries, setInitialListEntries] = useState<ListEntry[]>(listEntries);
-  const [loading, setLoading] = useState<Boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [isEditingList, setIsEditingList] = useState<Boolean>(false);
   const { list } = route.params;
   const [listTitle, setListTitle] = useState<string>(list.title);
   const [listDescription, setListDescription] = useState<string>(list.description)
+  const [newEntries, setNewEntries] = useState<ListEntry[]>([])
 
   const initialiseData = useCallback(async () => {
     setLoading(true);
@@ -65,6 +71,22 @@ export const ListDetailScreen: React.FC<ListDetailScreenProps> = ({ route, navig
     ListService.updateList(list.id, {title: listTitle, description: listDescription}, listEntries);
     setLoading(false);
     setIsEditingList(false);
+  };
+
+  const handleSearch = async () => {
+    Keyboard.dismiss();
+    if (query.length > 0) {
+        setLoading(true);
+        try {
+          const albums = await searchAlbums(query);
+          setResults(albums);
+        } catch (error) {
+          console.error('Error searching albums:', error);
+        } finally {
+          console.log(results);
+          setLoading(false);
+        }
+    }
   };
 
   const renderItem: ListRenderItem<ListEntry> = ({item, index}) => {
@@ -121,30 +143,71 @@ export const ListDetailScreen: React.FC<ListDetailScreenProps> = ({ route, navig
           </TouchableOpacity>
         </View>
           ) : (
-        <View style={styles.actionsRow}>
-          <TouchableOpacity
-            style={[styles.button, styles.buttonHalf, {backgroundColor: '#d9d9d9'}]}
-            onPress={() => {
-              setIsEditingList(false) 
-              setListEntries(initialListEntries)
-            }}
-          >
-            <Image source={require('../../icons/cancel-icon.png')} width={30} height={30} style={[styles.icon]} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.button, styles.buttonHalf, {backgroundColor: '#93e6c4'}]}
-            onPress={handleUpdate}
-          >
-            <Image source={require('../../icons/save-icon.png')} width={30} height={30} style={[styles.icon]} />
-          </TouchableOpacity>
+        <View style={styles.actionsContainer}>
+          <View style={styles.actionsRow}>
+            <TouchableOpacity
+              style={[styles.button, styles.buttonHalf, {backgroundColor: '#d9d9d9'}]}
+              onPress={() => {
+                setIsEditingList(false) 
+                setListEntries(initialListEntries)
+              }}
+            >
+              <Image source={require('../../icons/cancel-icon.png')} width={30} height={30} style={[styles.icon]} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.button, styles.buttonHalf, {backgroundColor: '#93e6c4'}]}
+              onPress={handleUpdate}
+            >
+              <Image source={require('../../icons/save-icon.png')} width={30} height={30} style={[styles.icon]} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.searchBarContainer}>
+            <TextInput
+              placeholder="Search for a record..."
+              value={query}
+              onChangeText={setQuery}
+              onSubmitEditing={handleSearch}
+              style={styles.searchInput}
+              returnKeyType="search" 
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+
+            <TouchableOpacity 
+              style={styles.searchButton} 
+              onPress={handleSearch}
+              disabled={loading}
+            >
+              {loading ? (<ActivityIndicator size="small" color="#fff" />) : (
+                <Image source={require('../../icons/search-icon.png')} width={20} height={20} style={[styles.icon]} />
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
         )}
-        <FlatList
-          data={listEntries}
-          renderItem={renderItem}
-          keyExtractor={item => item.id}
-          contentContainerStyle={styles.listEntries}
-          />
+        <View style={{ flex: 1 }}>
+          {(results.length > 0 || (query.length > 0 && loading)) ? (
+            <UISearchResults
+              screen={EnumScreenTypes.List}
+              results={results} 
+              loading={loading} 
+              navigation={navigation}
+              listLength={listEntries.length}
+              setNewListEntries={setNewEntries}
+              onClear={() => {
+                setResults([]);
+                setQuery('');
+              }}/>
+          ) : (
+            <FlatList
+              data={listEntries}
+              renderItem={renderItem}
+              keyExtractor={item => item.id}
+              contentContainerStyle={styles.listEntries}
+            />
+          )}
+        </View>
       </View>
     )
 };
@@ -193,9 +256,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   icon: {
-        width: 20,
-        height: 20,
-        opacity: 0.4,
+    width: 20,
+    height: 20,
+    opacity: 0.4,
   },
   listInput: {
     backgroundColor: '#f9f9f9',
@@ -207,4 +270,31 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 15,
   },
+  searchInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    borderRadius: 8,
+  },
+  searchButton: {
+    backgroundColor: '#e9e9e9',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionsContainer: {
+    backgroundColor: '#f9f9f9'
+  },
+  searchBarContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 15
+  }
 });

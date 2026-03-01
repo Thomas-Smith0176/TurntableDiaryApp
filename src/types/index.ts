@@ -5,7 +5,7 @@ export interface Album {
   releaseDate: string;
   artwork?: string;
   url: string;
-  latestRating: number;
+  latestRating?: number;
 }
 
 export interface DiaryEntry {
