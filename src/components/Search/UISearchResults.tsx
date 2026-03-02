@@ -3,15 +3,16 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, LayoutAnimation, ListR
 import { UISearchResult } from './UISearchResult';
 import { SpotifyAlbum } from '@/types/spotifyTypes';
 import { EnumScreenTypes } from '@/types/enums/EnumScreenType';
+import { ListEntry } from '@/services/ListService';
 
 interface UISearchResultsProps {
     screen: EnumScreenTypes;
     results: SpotifyAlbum[];
     navigation: any;
     listLength?: number;
-    selectedAlbums?: SpotifyAlbum[];
+    listEntries?: Partial<ListEntry>[];
     onClear: () => void;
-    setSelectedAlbums?: React.Dispatch<React.SetStateAction<SpotifyAlbum[]>>;
+    setListEntries?: React.Dispatch<React.SetStateAction<Partial<ListEntry>[]>>;
     setResults?: React.Dispatch<React.SetStateAction<SpotifyAlbum[]>>;
 }
       

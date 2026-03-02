@@ -1,17 +1,18 @@
 import { Album, List } from "@/types";
 import { supabase } from "supabase/supabaseClient";
+import * as Crypto from 'expo-crypto';
 
 export interface ListEntry {
-  id: string;
-  listId: number;
+  id?: string;
+  listId?: number;
   createdAt?: string;
-  listPosition: number;
-  albumTitle: string;
-  artist: string;
-  artwork: string;
+  listPosition?: number;
+  albumTitle?: string;
+  artist?: string;
+  artwork?: string;
 }
 
-export const createList = async (title: string, description: string, albums: string[]) => {
+export const createList = async (title: string, description: string, albums: Partial<ListEntry>[]) => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not logged in');
@@ -30,10 +31,12 @@ export const createList = async (title: string, description: string, albums: str
     if (listError) throw listError;
 
     // Create list entries
-    if (albumIds.length > 0) {
-      const listEntries = albumIds.map((albumId, index) => ({
+    if (albums.length > 0) {
+      const listEntries = albums.map((album, index) => ({
         list_id: listData.id,
-        album_id: albumId,
+        album_title: album.albumTitle,
+        artist_name: album.artist,
+        artwork_url: album.artwork,
         list_position: index + 1
       }));
 
@@ -149,12 +152,16 @@ export const updateList = async (
 
     if (listError) throw listError;
 
-    const formattedEntries = entriesUpdates.map(entry => ({
-      list_id: listId,
-      album_title: entry.albumTitle,
-      artist_name: entry.artist,
-      list_position: entry.listPosition
-    }));
+    const formattedEntries = entriesUpdates.map(entry => {
+      return {
+        id: entry.id || Crypto.randomUUID(), 
+        list_id: listId,
+        album_title: entry.albumTitle,
+        artist_name: entry.artist,
+        artwork_url: entry.artwork,
+        list_position: entry.listPosition
+      };
+    });
 
     const { error: entriesError } = await supabase
       .from('list_entries')

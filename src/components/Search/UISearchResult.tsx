@@ -9,10 +9,9 @@ interface UISearchResultProps {
   item: SpotifyAlbum;
   navigation: any;
   screen: EnumScreenTypes;
-  listLength?: number;
-  selectedAlbums?: SpotifyAlbum[];
-  setSelectedAlbums?: React.Dispatch<React.SetStateAction<SpotifyAlbum[]>>;
+  listEntries?: Partial<ListEntry>[];
   setResults?: React.Dispatch<React.SetStateAction<SpotifyAlbum[]>>;
+  setListEntries?: React.Dispatch<React.SetStateAction<Partial<ListEntry>[]>>;
 };
 
 export const UISearchResult: React.FC<UISearchResultProps> = (props) => {;
@@ -23,8 +22,16 @@ export const UISearchResult: React.FC<UISearchResultProps> = (props) => {;
       props.navigation.navigate('AddEntry', { selectedAlbum: album });
     }
     else if(props.screen == EnumScreenTypes.List) {
-      if(props.setSelectedAlbums && props.selectedAlbums && props.setResults) {
-        props.setSelectedAlbums([...props.selectedAlbums, album]);
+      if(props.setListEntries && props.setResults) {
+        
+        const newListEntry: Partial<ListEntry> = {
+          listPosition: (props.listEntries?.length ?? 0) + 1,
+          albumTitle: props.item.name,
+          artist: props.item.artist,
+          artwork: props.item.artwork
+        }
+
+        props.setListEntries(prev => [...prev, newListEntry]);
         props.setResults([]);
       }
     }

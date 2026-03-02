@@ -3,11 +3,11 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, LayoutAnimation } from
 import { ListEntry } from '@/services/ListService';
 
 interface UIListEntryProps {
-  entry: ListEntry;
+  entry: Partial<ListEntry>;
   index: number;
   isEditingList: Boolean;
-  listEntries: ListEntry[];
-  setListEntries: React.Dispatch<React.SetStateAction<ListEntry[]>>;
+  listEntries: Partial<ListEntry>[];
+  setListEntries: React.Dispatch<React.SetStateAction<Partial<ListEntry>[]>>;
 }
 
 export const UIListEntry: React.FC<UIListEntryProps> = ({ entry, index, isEditingList, listEntries, setListEntries }) => {
@@ -20,7 +20,7 @@ export const UIListEntry: React.FC<UIListEntryProps> = ({ entry, index, isEditin
         
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         
-        setListEntries((prev: ListEntry[]) => {
+        setListEntries((prev: Partial<ListEntry>[]) => {
             const newEntries = [...prev];
 
             const [movedItem] = newEntries.splice(index, 1);
@@ -30,23 +30,27 @@ export const UIListEntry: React.FC<UIListEntryProps> = ({ entry, index, isEditin
             newEntries[targetIndex] = { ...newEntries[targetIndex], listPosition: targetIndex };
 
             return newEntries;
-        })
-        
+        })     
+    };
+
+    const removeItem = () => {
+        setListEntries(prev => prev.filter((_, i) => i !== index));
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     };
 
     return (
         <View style={styles.listEntryCard}>
-            <Image
-                source={{ uri: entry.artwork }}
-                style={styles.coverImage}
-                />
-            <View style={styles.listEntryCardContent}>
-                <View style={styles.listEntryCardDetails}>
-                    <Text style={styles.listEntryTitle}>{entry.albumTitle}</Text>
-                    <Text style={styles.listEntryArtist}>{entry.artist}</Text>
-                </View>
-                {!isEditingList ? (<Text style={styles.listEntryPosition}>{index + 1}</Text>)
-                : (
+            <Image source={{ uri: entry.artwork }} style={styles.coverImage} />
+
+            <View style={styles.listEntryCardDetails}>
+                <Text ellipsizeMode="tail" numberOfLines={2} style={styles.listEntryTitle}>{entry.albumTitle}</Text>
+                <Text ellipsizeMode="tail" numberOfLines={1} style={styles.listEntryArtist}>{entry.artist}</Text>
+            </View>
+
+            <View style={styles.rightActionsContainer}>
+                {!isEditingList ? (
+                    <Text style={styles.listEntryPosition}>{index + 1}</Text>
+                ) : (
                     <View style={styles.reorderContainer}>
                         <TouchableOpacity 
                         onPress={() => moveItem(index, 'up')}
@@ -54,7 +58,7 @@ export const UIListEntry: React.FC<UIListEntryProps> = ({ entry, index, isEditin
                         hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                         style={[styles.touchTarget, index === 0 && { opacity: 0.3 }]}
                         >
-                        <Image source={require('../../icons/chevron-up-icon.png')} style={styles.icon} />
+                            <Image source={require('../../icons/chevron-up-icon.png')} style={styles.icon} />
                         </TouchableOpacity>
 
                         <TouchableOpacity 
@@ -63,9 +67,15 @@ export const UIListEntry: React.FC<UIListEntryProps> = ({ entry, index, isEditin
                         hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                         style={[styles.touchTarget, index === listEntries.length - 1 && { opacity: 0.3 }]}
                         >
-                        <Image source={require('../../icons/chevron-down-icon.png')} style={styles.icon} />
+                            <Image source={require('../../icons/chevron-down-icon.png')} style={styles.icon} />
                         </TouchableOpacity>
                     </View>
+                )}
+
+                {isEditingList && (
+                    <TouchableOpacity onPress={removeItem}>
+                         <Image source={require('../../icons/cancel-icon.png')} style={styles.icon} />
+                    </TouchableOpacity>
                 )}
             </View>
         </View>
@@ -80,7 +90,8 @@ const styles = StyleSheet.create({
         borderColor: '#cfcfcf',
         borderTopWidth: 1,
         paddingTop: 20,
-        marginHorizontal: 15
+        marginHorizontal: 15,
+        alignItems: 'center'
     },
     listEntryCardContent: {
         flex: 1,
@@ -89,6 +100,7 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
     listEntryCardDetails: {
+        flex: 1,
         justifyContent: 'center',
         paddingHorizontal: 15
     },
@@ -107,8 +119,8 @@ const styles = StyleSheet.create({
         paddingRight: 15,
     },
     coverImage: {
-        width: 100,
-        height: 100,
+        width: 80,
+        height: 80,
     },
     icon: {
         width: 20,
@@ -124,5 +136,10 @@ const styles = StyleSheet.create({
     },
     touchTarget: {
         padding: 10, 
-    }
+    },
+    rightActionsContainer: {
+            flexDirection: 'row',  // Keep Remove and Reorder side-by-side
+            alignItems: 'center',
+            height: 80,
+        },
 });

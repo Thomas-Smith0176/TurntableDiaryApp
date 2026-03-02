@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Image, L
 import { getTrendingAlbums, searchAlbums } from '../../services/SpotifyService';
 import { SpotifyAlbum } from '../../types/spotifyTypes';
 import { useFocusEffect } from '@react-navigation/native';
-import { SearchResult } from '@/components/Search/UISearchResult';
 import { fetchLastFmUsername } from '@/services/ProfileService';
 import { getRecentAlbums } from '@/services/LastFmService';
 import { SuggestedAlbum } from '@/types/lastFmTypes';
@@ -60,11 +59,7 @@ export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ navigation
   return (
       <View style={styles.container}>
         <View style={styles.header}>
-            <Text style={styles.title}>Add Music</Text>
-        </View>
-        
-        <View>
-          <UISearchBar setResults={setResults}/>
+            <UISearchBar setResults={setResults}/>
         </View>
 
         {/* Search results */}
@@ -99,7 +94,7 @@ export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ navigation
                       data={popularAlbums}
                       horizontal
                       showsHorizontalScrollIndicator={false}
-                      keyExtractor={(item, index) => item.id || index.toString()}
+                      keyExtractor={(item) => item.albumTitle}
                       snapToInterval={220}
                       decelerationRate={"fast"}
                       renderItem={({ item }) => (
@@ -143,7 +138,7 @@ export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ navigation
                       data={recentAlbums}
                       horizontal
                       showsHorizontalScrollIndicator={false}
-                      keyExtractor={(item, index) => item.id || index.toString()}
+                      keyExtractor={(item) => item.albumTitle}
                       snapToInterval={220}
                       decelerationRate={"fast"}
                       renderItem={({ item }) => (
@@ -171,8 +166,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9'
   },
   header: {
+    paddingTop: 60,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingBottom: 15,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -183,6 +179,9 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
   }, 
+  searchBar: {
+    paddingHorizontal: 15
+  },
   listContent: {
     paddingVertical: 8,
   },

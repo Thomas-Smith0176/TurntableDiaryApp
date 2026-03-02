@@ -58,120 +58,123 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
   };
 
   return (
-    <KeyboardAwareScrollView
-      style={styles.container}
-      enableOnAndroid={true}
-      extraHeight={100}
-      enableAutomaticScroll={true}
-    >
-      <View style={styles.header}>
-          {entry.album?.artwork && <Image source={{ uri: entry.album.artwork }} style={styles.artwork} />}
-          <Text style={styles.albumTitle}>{entry.album.title}</Text>
-          <Text style={styles.albumDetails}>{entry.album.artist}</Text>
-          <View style={styles.playButtonContainer}>
-            <Text style={styles.albumDetails}>{processDate(entry.album.releaseDate)}</Text>        
-            <TouchableOpacity onPress={() => Linking.openURL(entry.album.url)}>
-              <View>
-                <Image source={require('../../icons/play-icon.png')} width={20} height={20} style={[styles.icon]} />
-              </View>
-            </TouchableOpacity>
+    <View style={styles.container}>
+      <KeyboardAwareScrollView
+        enableOnAndroid={true}
+        extraHeight={100}
+        enableAutomaticScroll={true}
+      >
+        <View style={styles.header}>
+            {entry.album?.artwork && <Image source={{ uri: entry.album.artwork }} style={styles.artwork} />}
+            <Text style={styles.albumTitle}>{entry.album.title}</Text>
+            <Text style={styles.albumDetails}>{entry.album.artist}</Text>
+            <View style={styles.playButtonContainer}>
+              <Text style={styles.albumDetails}>{processDate(entry.album.releaseDate)}</Text>        
+              <TouchableOpacity onPress={() => Linking.openURL(entry.album.url)}>
+                <View>
+                  <Image source={require('../../icons/play-icon.png')} width={20} height={20} style={[styles.icon]} />
+                </View>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
 
-      <View style={styles.section}>
-        <View style={styles.ratingContainer}>
-          <View style={styles.ratingDisplay}>
-            <Text style={{fontSize: 24}}>{rating}</Text>
+        <View style={styles.section}>
+          <View style={styles.ratingContainer}>
+            <View style={styles.ratingDisplay}>
+              <Text style={{fontSize: 24}}>{rating}</Text>
+            </View>
           </View>
-        </View>
 
-        <View style={styles.reviewContainer}>
-        {isEditingReview ? (
-          <>
-          <Slider
-            style={styles.slider}
-            minimumValue={1}
-            maximumValue={10}
-            value={rating}
-            step={1}
-            minimumTrackTintColor="#151515"
-            thumbTintColor="#151515"
-            onValueChange={(value) => {
-              setRating(value);
-            }}
-            />
-          <TextInput
-            style={styles.reviewInput}
-            multiline
-            numberOfLines={4}
-            value={review}
-            onChangeText={setReview}
-            textAlignVertical="top"
-            />
-          </>
-        ) : (
-          <>
-            <Text style={styles.reviewText}>{review || 'No review added'}</Text>
-          </>
-        )}
-        </View>
-
-        <View style={styles.dateContainer}>
-          <Text style={styles.value}>Listened on: {new Date(dateListen).toLocaleDateString()}</Text>
-          {(!isEditingDate && isEditingReview) && (
-            <TouchableOpacity
-              onPress={() => setIsEditingDate(true)}
-            >
-              <Image source={require('../../icons/calendar-icon.png')} width={20} height={20} style={[styles.icon]} />
-            </TouchableOpacity>
+          <View style={styles.reviewContainer}>
+          {isEditingReview ? (
+            <>
+            <Slider
+              style={styles.slider}
+              minimumValue={1}
+              maximumValue={10}
+              value={rating}
+              step={1}
+              minimumTrackTintColor="#151515"
+              thumbTintColor="#151515"
+              onValueChange={(value) => {
+                setRating(value);
+              }}
+              />
+            <TextInput
+              style={styles.reviewInput}
+              multiline
+              numberOfLines={4}
+              value={review}
+              onChangeText={setReview}
+              textAlignVertical="top"
+              />
+            </>
+          ) : (
+            <>
+              <Text style={styles.reviewText}>{review || 'No review added'}</Text>
+            </>
           )}
-        </View>
-      </View>
+          </View>
 
-      {isEditingReview ? (
-      <View style={styles.actionsRow}>
-        <TouchableOpacity
-          style={[styles.button, styles.buttonHalf, {backgroundColor: '#d9d9d9'}]}
-          onPress={() => {
-            setIsEditingReview(false);
-            setReview(entry.review);
-            setRating(entry.rating);
-            setDateListen(entry.dateListen);
-          }}
-          >
-          <Image source={require('../../icons/cancel-icon.png')} width={20} height={20} style={[styles.icon]} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, styles.buttonHalf, {backgroundColor: '#93e6c4'}]}
-          onPress={handleUpdate}
-          >
-          <Image source={require('../../icons/save-icon.png')} width={20} height={20} style={[styles.icon]} />
-        </TouchableOpacity>
-      </View>
-      ) : (
+          <View style={styles.dateContainer}>
+            <Text style={styles.value}>Listened on: {new Date(dateListen).toLocaleDateString()}</Text>
+            {(!isEditingDate && isEditingReview) && (
+              <TouchableOpacity
+                onPress={() => setIsEditingDate(true)}
+              >
+                <Image source={require('../../icons/calendar-icon.png')} width={20} height={20} style={[styles.icon]} />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+        
+        <DateModal
+          isEditingDate={isEditingDate}
+          setIsEditingDate={setIsEditingDate}
+          dateListen={dateListen}
+          setDateListen={setDateListen}
+        />
+      </KeyboardAwareScrollView>
+
+      <View >
+        {isEditingReview ? (
         <View style={styles.actionsRow}>
           <TouchableOpacity
             style={[styles.button, styles.buttonHalf, {backgroundColor: '#d9d9d9'}]}
-            onPress={handleDelete}
-          >
-            <Image source={require('../../icons/delete-icon.png')} width={30} height={30} style={[styles.icon]} />
+            onPress={() => {
+              setIsEditingReview(false);
+              setReview(entry.review);
+              setRating(entry.rating);
+              setDateListen(entry.dateListen);
+            }}
+            >
+            <Image source={require('../../icons/cancel-icon.png')} width={20} height={20} style={[styles.icon]} />
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.button, styles.buttonHalf, {backgroundColor: '#c5e9fd'}]}
-            onPress={() => setIsEditingReview(true)}
-          >
-            <Image source={require('../../icons/edit-icon.png')} width={30} height={30} style={[styles.icon]} />
+            style={[styles.button, styles.buttonHalf, {backgroundColor: '#93e6c4'}]}
+            onPress={handleUpdate}
+            >
+            <Image source={require('../../icons/save-icon.png')} width={20} height={20} style={[styles.icon]} />
           </TouchableOpacity>
         </View>
-      )}
-      
-      <DateModal
-        isEditingDate={isEditingDate}
-        setIsEditingDate={setIsEditingDate}
-        dateListen={dateListen}
-        setDateListen={setDateListen}
-      />
-    </KeyboardAwareScrollView>
+        ) : (
+          <View style={styles.actionsRow}>
+            <TouchableOpacity
+              style={[styles.button, styles.buttonHalf, {backgroundColor: '#d9d9d9'}]}
+              onPress={handleDelete}
+            >
+              <Image source={require('../../icons/delete-icon.png')} width={30} height={30} style={[styles.icon]} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.button, styles.buttonHalf, {backgroundColor: '#c5e9fd'}]}
+              onPress={() => setIsEditingReview(true)}
+            >
+              <Image source={require('../../icons/edit-icon.png')} width={30} height={30} style={[styles.icon]} />
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+    </View>
   );
 };
 
@@ -373,5 +376,5 @@ const styles = StyleSheet.create({
     backgroundColor: '#999',
     top: '150%',
     marginTop: -8,
-  },
+  }
 });

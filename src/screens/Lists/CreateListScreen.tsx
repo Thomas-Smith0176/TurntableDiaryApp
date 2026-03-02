@@ -1,24 +1,12 @@
 import React, { useCallback, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-  TextInput,
-  Modal,
-  FlatList,
-  Image,
-  ActivityIndicator,
-} from 'react-native';
-import { useDiary } from '@/context/DiaryContext';
+import {View, Text, StyleSheet, TouchableOpacity, Alert, TextInput, FlatList, ListRenderItem,} from 'react-native';
 import * as ListService from '../../services/ListService';
-import { useFocusEffect } from '@react-navigation/native';
 import { SpotifyAlbum } from '@/types/spotifyTypes';
 import { UISearchBar } from '@/components/Search/UISearchBar';
 import { UISearchResults } from '@/components/Search/UISearchResults';
 import { EnumScreenTypes } from '@/types/enums/EnumScreenType';
+import { UIListEntry } from '@/components/Lists/UIListEntry';
+import { ListEntry } from '@/services/ListService';
 
 interface CreateListScreenProps {
   navigation: any;
@@ -27,13 +15,13 @@ interface CreateListScreenProps {
 export const CreateListScreen: React.FC<CreateListScreenProps> = ({ navigation }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [selectedAlbums, setSelectedAlbums] = useState<SpotifyAlbum[]>([]);
+  const [listEntries, setListEntries] = useState<Partial<ListEntry>[]>([]);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<SpotifyAlbum[]>([]);
 
-  const handleRemoveAlbum = (albumId: string) => {
-    setSelectedAlbums(selectedAlbums.filter(id => id !== albumId));
-  };
+  // const handleRemoveAlbum = (albumId: string) => {
+  //   setListEntries(listEntries.filter(id => id !== albumId));
+  // };
 
   const handleSaveList = async () => {
     if (!title.trim()) {
@@ -41,13 +29,13 @@ export const CreateListScreen: React.FC<CreateListScreenProps> = ({ navigation }
       return;
     }
 
-    if (selectedAlbums.length === 0) {
+    if (listEntries.length === 0) {
       Alert.alert('Error', 'Please add at least one album to the list');
       return;
     }
 
     setLoading(true);
-    const result = await ListService.createList(title, description, selectedAlbums);
+    const result = await ListService.createList(title, description, listEntries);
     setLoading(false);
 
     if (result.success) {
@@ -58,17 +46,21 @@ export const CreateListScreen: React.FC<CreateListScreenProps> = ({ navigation }
     }
   };
 
+  const renderItem: ListRenderItem<Partial<ListEntry>> = ({item, index}) => {
+    return (
+      <View>
+        <UIListEntry entry={item} index={index} isEditingList={true} listEntries={listEntries} setListEntries={setListEntries}/>
+      </View>
+    )
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.closeButton}>←</Text>
-        </TouchableOpacity>
         <Text style={styles.headerTitle}>Create New List</Text>
-        <View style={{ width: 30 }} />
       </View>
 
-      <View style={styles.content}>
+      <View style={styles.container}>
         <View style={styles.section}>
           <Text style={styles.label}>List Title</Text>
           <TextInput
@@ -93,50 +85,36 @@ export const CreateListScreen: React.FC<CreateListScreenProps> = ({ navigation }
           />
         </View>
 
-        <UISearchBar setResults={setResults}/>
+        <View style={styles.section}>
+            <Text style={styles.label}>Music</Text>
+          <UISearchBar setResults={setResults}/>
+        </View>
 
         {(results.length > 0 ) ? (
           <UISearchResults
             screen={EnumScreenTypes.List}
             results={results} 
             navigation={navigation}
-            selectedAlbums={selectedAlbums}
-            setSelectedAlbums={setSelectedAlbums}
+            listEntries={listEntries}
+            setListEntries={setListEntries}
             setResults={setResults}
             onClear={() => {
               setResults([]);
             }}/>
         ) : (
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.label}>Albums in List</Text>
-            <Text style={styles.albumCount}>{selectedAlbums.length}</Text>
-          </View>
-
-          {selectedAlbums.length === 0 ? (
-            <Text style={styles.emptyText}>No albums added yet</Text>
-          ) : (
-            <View style={styles.selectedAlbumsList}>
-              {selectedAlbums.map(album => (
-                <View key={album.id} style={styles.selectedAlbumItem}>
-                  <View style={styles.selectedAlbumInfo}>
-                    <Text style={styles.selectedAlbumTitle} numberOfLines={1}>
-                      {album.name}
-                    </Text>
-                    <Text style={styles.selectedAlbumArtist} numberOfLines={1}>
-                      {album.artist}
-                    </Text>
-                  </View>
-                  <TouchableOpacity
-                    style={styles.removeButton}
-                    onPress={() => handleRemoveAlbum(album.id)}
-                  >
-                    <Text style={styles.removeButtonText}>✕</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
-          )}
+        <View style={styles.listSection}>
+          {listEntries.length === 0 ? (
+            <Text style={styles.emptyText}>No records added yet</Text>
+          ) : 
+          (
+            <FlatList
+              data={listEntries}
+              renderItem={renderItem}
+              keyExtractor={(item, index) => item.id?.toString() ?? index.toString()}
+              contentContainerStyle={styles.listEntries}
+            />
+          )
+          }
         </View>
         )}
       </View>
@@ -160,44 +138,36 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9',
   },
   header: {
-    backgroundColor: '#fff',
     paddingHorizontal: 16,
     paddingTop: 50,
     paddingBottom: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e8e8e8',
   },
-  closeButton: {
+  closeButton: { //
     fontSize: 24,
     fontWeight: 'bold',
     color: '#000000',
   },
-  headerTitle: {
+  headerTitle: { //
     fontSize: 18,
     fontWeight: 'bold',
   },
-  content: {
+  section: { 
+    padding: 15
+  },
+  listSection: { 
     flex: 1,
-    padding: 16,
+    paddingVertical: 15
   },
-  section: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#e8e8e8'
-  },
-  label: {
+  label: { //
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
     color: '#333',
   },
-  input: {
+  input: { //
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 6,
@@ -206,26 +176,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
   },
-  multilineInput: {
+  multilineInput: { //
     textAlignVertical: 'top',
     paddingTop: 10,
   },
-  sectionHeader: {
+  sectionHeader: { //
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
-  },
-  albumCount: {
-    backgroundColor: '#007AFF',
-    color: '#fff',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    fontSize: 12,
-    fontWeight: '600',
+    marginBottom: 12
   },
   emptyText: {
+    alignSelf: 'center',
     color: '#999',
     fontSize: 14,
     fontStyle: 'italic',
@@ -280,76 +242,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   footer: {
-    paddingHorizontal: 16,
-    paddingBottom: 20,
+    paddingHorizontal: 15,
+    paddingBottom: 10,
     paddingTop: 12,
   },
-  saveButton: {
+  saveButton: { //
     backgroundColor: '#34C759',
     borderRadius: 8,
     paddingVertical: 12,
     alignItems: 'center',
   },
-  buttonDisabled: {
+  buttonDisabled: {//
     opacity: 0.6,
   },
-  saveButtonText: {
+  saveButtonText: {//
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
   },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    height: '90%',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  modalCloseButton: {
-    fontSize: 20,
-    color: '#007AFF',
-    fontWeight: 'bold',
-  },
-  albumList: {
-    flex: 1,
-  },
-  albumOption: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  albumOptionSelected: {
-    backgroundColor: '#f0f8ff',
-  },
-  albumOptionText: {
-    flex: 1,
-    fontSize: 14,
-    color: '#333',
-  },
-  checkmark: {
-    fontSize: 16,
-    color: '#34C759',
-    fontWeight: 'bold',
+  listEntries: { //
+    borderColor: '#cfcfcf',
+    borderBottomWidth: 0.5,
   },
 });

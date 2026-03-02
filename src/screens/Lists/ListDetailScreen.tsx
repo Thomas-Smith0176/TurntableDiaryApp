@@ -28,7 +28,6 @@ export const ListDetailScreen: React.FC<ListDetailScreenProps> = ({ route, navig
   const { list } = route.params;
   const [listTitle, setListTitle] = useState<string>(list.title);
   const [listDescription, setListDescription] = useState<string>(list.description)
-  const [newEntries, setNewEntries] = useState<ListEntry[]>([])
 
   const initialiseData = useCallback(async () => {
     setLoading(true);
@@ -68,6 +67,7 @@ export const ListDetailScreen: React.FC<ListDetailScreenProps> = ({ route, navig
 
   const handleUpdate = async () => {
     setLoading(true);
+    console.log("SENDING TO DB:", listEntries.map(e => ({ title: e.albumTitle, hasId: !!e.id, idValue: e.id })));
     ListService.updateList(list.id, {title: listTitle, description: listDescription}, listEntries);
     setLoading(false);
     setIsEditingList(false);
@@ -124,6 +124,54 @@ export const ListDetailScreen: React.FC<ListDetailScreenProps> = ({ route, navig
             <Text style={styles.listDescription}>{listDescription}</Text>
           )}
         </View>
+        {isEditingList && (
+        <View style={styles.searchBarContainer}>
+            <TextInput
+              placeholder="Search for a record..."
+              value={query}
+              onChangeText={setQuery}
+              onSubmitEditing={handleSearch}
+              style={styles.searchInput}
+              returnKeyType="search" 
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+
+            <TouchableOpacity 
+              style={styles.searchButton} 
+              onPress={handleSearch}
+              disabled={loading}
+            >
+              {loading ? (<ActivityIndicator size="small" color="#fff" />) : (
+                <Image source={require('../../icons/search-icon.png')} width={20} height={20} style={[styles.icon]} />
+              )}
+            </TouchableOpacity>
+        </View>)}
+
+        <View style={{ flex: 1 }}>
+          {(results.length > 0 || (query.length > 0 && loading)) ? (
+            <UISearchResults
+              screen={EnumScreenTypes.List}
+              results={results} 
+              navigation={navigation}
+              listLength={listEntries.length}
+              listEntries={listEntries}
+              setListEntries={setListEntries}
+              setResults={setResults}
+              onClear={() => {
+                setResults([]);
+              }}/>
+          ) : (
+            <FlatList
+              data={listEntries}
+              renderItem={renderItem}
+              keyExtractor={(item, index) => item.id?.toString() ?? index.toString()}
+              contentContainerStyle={styles.listEntries}
+            />
+          )}
+        </View>
+
+        <View style={styles.footer}>
         {!isEditingList ? (
         <View style={styles.actionsRow}>
           <TouchableOpacity
@@ -161,52 +209,8 @@ export const ListDetailScreen: React.FC<ListDetailScreenProps> = ({ route, navig
               <Image source={require('../../icons/save-icon.png')} width={30} height={30} style={[styles.icon]} />
             </TouchableOpacity>
           </View>
-
-          <View style={styles.searchBarContainer}>
-            <TextInput
-              placeholder="Search for a record..."
-              value={query}
-              onChangeText={setQuery}
-              onSubmitEditing={handleSearch}
-              style={styles.searchInput}
-              returnKeyType="search" 
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-
-            <TouchableOpacity 
-              style={styles.searchButton} 
-              onPress={handleSearch}
-              disabled={loading}
-            >
-              {loading ? (<ActivityIndicator size="small" color="#fff" />) : (
-                <Image source={require('../../icons/search-icon.png')} width={20} height={20} style={[styles.icon]} />
-              )}
-            </TouchableOpacity>
-          </View>
         </View>
         )}
-        <View style={{ flex: 1 }}>
-          {(results.length > 0 || (query.length > 0 && loading)) ? (
-            <UISearchResults
-              screen={EnumScreenTypes.List}
-              results={results} 
-              loading={loading} 
-              navigation={navigation}
-              listLength={listEntries.length}
-              setNewListEntries={setNewEntries}
-              onClear={() => {
-                setResults([]);
-                setQuery('');
-              }}/>
-          ) : (
-            <FlatList
-              data={listEntries}
-              renderItem={renderItem}
-              keyExtractor={item => item.id}
-              contentContainerStyle={styles.listEntries}
-            />
-          )}
         </View>
       </View>
     )
@@ -223,6 +227,7 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   listTitle: {
+    marginTop: 15,
     fontSize: 22,
     fontWeight: 'bold',
   },
@@ -296,5 +301,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     marginBottom: 15
-  }
+  },
 });

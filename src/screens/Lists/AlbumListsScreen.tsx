@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 16,
-    paddingTop: 50,
+    paddingTop: 60,
     paddingBottom: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -155,9 +155,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999',
   },
-    icon: {
-        width: 20,
-        height: 20,
-        opacity: 0.4,
-    },
+  icon: {
+      width: 20,
+      height: 20,
+      opacity: 0.4,
+  },
 });
