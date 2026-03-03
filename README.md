@@ -96,26 +96,16 @@ npm run ios
 - Full album details with all information
 - Edit mode to update review and rating
 - Delete functionality with confirmation
-- Add/remove from favorites
-- Display listened date and track count
+- Display listened date
 
 ### ProfileScreen
 - Statistics: Total albums, average rating, top genres
-- Top rated albums list
-- Genre distribution
+- Top rated albums and artists lists
 - Quick stats overview
 
 ## Data Management
 
-The app uses **React Context** for state management with a mock **AlbumService** that stores data in memory. 
-
-### Future Enhancements:
-- Replace AlbumService with AsyncStorage for persistent local storage
-- Add Firebase/backend integration for cloud sync
-- Implement user authentication
-- Add album search via external APIs (Last.fm, Spotify)
-- Social features (share reviews, follow friends)
-- Image upload for album covers
+## Future Enhancements:
 
 ## Development
 
@@ -142,9 +132,3 @@ npx prettier --write .
 - TypeScript 5.8.3
 - Jest for testing
 - ESLint for code quality
-
-## Notes
-
-- Data is stored in memory and will be lost on app restart
-- To add persistent storage, integrate AsyncStorage or a database
-- Cover images use placeholder UI; implement image upload for custom images
