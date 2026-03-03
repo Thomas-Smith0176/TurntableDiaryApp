@@ -152,6 +152,27 @@ export const updateList = async (
 
     if (listError) throw listError;
 
+    const { data: currentDbEntries } = await supabase
+      .from('list_entries')
+      .select('id')
+      .eq('list_id', listId);
+
+    if (currentDbEntries) {
+      const dbIds = currentDbEntries.map(e => e.id);
+      const uiIds = entriesUpdates.map(e => e.id).filter(id => !!id);
+
+      const idsToDelete = dbIds.filter(id => !uiIds.includes(id));
+
+      if (idsToDelete.length > 0) {
+        const { error: deleteError } = await supabase
+          .from('list_entries')
+          .delete()
+          .in('id', idsToDelete);
+        
+        if (deleteError) throw deleteError;
+      }
+    }
+
     const formattedEntries = entriesUpdates.map(entry => {
       return {
         id: entry.id || Crypto.randomUUID(), 

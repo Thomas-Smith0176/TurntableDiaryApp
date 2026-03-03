@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, LayoutAnimation, ListRenderItem, FlatList, ActivityIndicator } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, ListRenderItem, FlatList } from 'react-native';
 import { UISearchResult } from './UISearchResult';
 import { SpotifyAlbum } from '@/types/spotifyTypes';
 import { EnumScreenTypes } from '@/types/enums/EnumScreenType';
@@ -11,7 +11,6 @@ interface UISearchResultsProps {
     navigation: any;
     listLength?: number;
     listEntries?: Partial<ListEntry>[];
-    onClear: () => void;
     setListEntries?: React.Dispatch<React.SetStateAction<Partial<ListEntry>[]>>;
     setResults?: React.Dispatch<React.SetStateAction<SpotifyAlbum[]>>;
 }
@@ -24,12 +23,6 @@ export const UISearchResults: React.FC<UISearchResultsProps> = (props) => {
 
   return (
         <View style={styles.searchResultsContainer}>
-          {props.results.length > 0 && (
-            <TouchableOpacity style={styles.clearButton} onPress={props.onClear}>
-              <Text style={styles.clearText}>Clear Results</Text>
-            </TouchableOpacity>
-          )}
-
           {props.results.length > 0 ? (
             <FlatList
               data={props.results}
@@ -68,15 +61,5 @@ const styles = StyleSheet.create({
       fontWeight: 'bold',
       marginBottom: 8,
       justifyContent: 'center'
-  },
-  clearButton: {
-      padding: 10,
-      alignItems: 'center',
-      borderBottomWidth: 1,
-      borderBottomColor: '#eee',
-  },
-  clearText: {
-    color: '#007AFF',
-    fontWeight: '600',
   },
 })

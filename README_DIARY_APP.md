@@ -1,17 +1,14 @@
-# Recordbox Diary App
+# Jukebox Diary App
 
-A React Native app for music enthusiasts to document, rate, and review the albums they listen to.
+A streamlined app for music enthusiasts to document, rate, and review the albums they listen to.
 
 ## Features
 
-- **Album Diary**: Log albums you listen to with detailed information
-- **Rating & Reviews**: Rate albums on a 5-star scale and write personal reviews
-- **Profile Dashboard**: View statistics including:
-  - Total albums logged
-  - Average rating
-  - Top genres
-  - Top-rated albums
-- **Album Management**: Edit, delete, and favorite your album entries
+- **Album Diary**: Log, rate, and write personal reviews for albums you listen to.
+- **Album Lists**: Create personalised lists based on your favourite artists, and genres, and years of music.
+- **Streaming Sync**: View your recent albums from any streaming service via Last Fm.
+- **Trending Feed**: Create entries based of a feed of nationally trending releases.
+- **Profile Dashboard**: View statistics including your total listens, avergae rating, and top rated artists and albums.
 
 ## Project Structure
 
@@ -47,7 +44,7 @@ src/
 
 1. Navigate to the project directory:
 ```bash
-cd RecordboxDiaryApp
+cd JukeboxDiaryApp
 ```
 
 2. Install dependencies:
@@ -79,11 +76,15 @@ npm run ios
 
 ## Key Components
 
-### HomeScreen
+### AlbumDiaryScreen
 - Displays all logged albums in a feed
-- Shows album cover (placeholder), title, artist, rating, review snippet, and date
-- "Add Album" button to create new entries
-- Empty state when no albums are logged
+- Shows album cover, title, artist, rating, review snippet, and date
+- Entries are divided into sections based on month saved
+
+### AlbumSearchScreen
+- Features search functionality utilising Spotify API
+- Displays feed of internationally trending releases
+- Displays feed of users recent listens (based off linked LastFm account)
 
 ### AddEntryScreen
 - Form to add new album entries

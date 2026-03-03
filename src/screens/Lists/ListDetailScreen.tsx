@@ -158,9 +158,7 @@ export const ListDetailScreen: React.FC<ListDetailScreenProps> = ({ route, navig
               listEntries={listEntries}
               setListEntries={setListEntries}
               setResults={setResults}
-              onClear={() => {
-                setResults([]);
-              }}/>
+              />
           ) : (
             <FlatList
               data={listEntries}
@@ -171,7 +169,7 @@ export const ListDetailScreen: React.FC<ListDetailScreenProps> = ({ route, navig
           )}
         </View>
 
-        <View style={styles.footer}>
+        <View>
         {!isEditingList ? (
         <View style={styles.actionsRow}>
           <TouchableOpacity

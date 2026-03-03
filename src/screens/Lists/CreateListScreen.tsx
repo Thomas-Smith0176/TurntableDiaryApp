@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Alert, TextInput, FlatList, ListRenderItem,} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, Alert, TextInput, FlatList, ListRenderItem, Image,} from 'react-native';
 import * as ListService from '../../services/ListService';
 import { SpotifyAlbum } from '@/types/spotifyTypes';
 import { UISearchBar } from '@/components/Search/UISearchBar';
@@ -125,7 +125,7 @@ export const CreateListScreen: React.FC<CreateListScreenProps> = ({ navigation }
           onPress={handleSaveList}
           disabled={loading}
         >
-          <Text style={styles.saveButtonText}>{loading ? 'Saving...' : 'Save List'}</Text>
+          <Image source={require('../../icons/save-icon.png')} width={20} height={20} style={[styles.icon]} />
         </TouchableOpacity>
       </View>
     </View>
@@ -145,12 +145,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  closeButton: { //
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000000',
-  },
-  headerTitle: { //
+  headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
   },
@@ -161,13 +156,13 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 15
   },
-  label: { //
+  label: {
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
     color: '#333',
   },
-  input: { //
+  input: {
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 6,
@@ -176,15 +171,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
   },
-  multilineInput: { //
+  multilineInput: {
     textAlignVertical: 'top',
     paddingTop: 10,
-  },
-  sectionHeader: { //
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12
   },
   emptyText: {
     alignSelf: 'center',
@@ -193,75 +182,27 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginBottom: 12,
   },
-  selectedAlbumsList: {
-    backgroundColor: '#f9f9f9',
-    borderRadius: 6,
-    marginBottom: 12,
-    overflow: 'hidden',
-  },
-  selectedAlbumItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  selectedAlbumInfo: {
-    flex: 1,
-  },
-  selectedAlbumTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-  },
-  selectedAlbumArtist: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 2,
-  },
-  removeButton: {
-    paddingLeft: 12,
-    paddingVertical: 4,
-  },
-  removeButtonText: {
-    fontSize: 18,
-    color: '#ff3b30',
-    fontWeight: 'bold',
-  },
-  addAlbumButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 6,
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
-  addAlbumButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 14,
-  },
   footer: {
     paddingHorizontal: 15,
     paddingBottom: 10,
     paddingTop: 12,
   },
-  saveButton: { //
-    backgroundColor: '#34C759',
+  saveButton: { 
+    backgroundColor: '#93e6c4',
     borderRadius: 8,
     paddingVertical: 12,
     alignItems: 'center',
   },
-  buttonDisabled: {//
+  buttonDisabled: {
     opacity: 0.6,
   },
-  saveButtonText: {//
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  listEntries: { //
+  listEntries: {
     borderColor: '#cfcfcf',
     borderBottomWidth: 0.5,
+  },
+  icon: {
+    width: 20,
+    height: 20,
+    opacity: 0.4,
   },
 });

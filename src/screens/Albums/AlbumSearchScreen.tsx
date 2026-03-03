@@ -68,9 +68,7 @@ export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ navigation
             screen={EnumScreenTypes.Album}
             results={results} 
             navigation={navigation}
-            onClear={() => {
-              setResults([]);
-            }}/>
+            />
         )}
 
         {/* Trending Releases*/}
