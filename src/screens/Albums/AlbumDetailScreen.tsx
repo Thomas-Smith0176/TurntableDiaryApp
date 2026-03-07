@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Pressable, Alert, TextInput, Image, Modal, Linking, Platform } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useDiary } from '../../context/DiaryContext';
-import DateTimePicker, { useDefaultStyles } from 'react-native-ui-datepicker';
 import * as AlbumService from '../../services/AlbumService';
 import Slider from '@react-native-community/slider';
 import { DateModal } from '@/components/Modals/DateModal';
@@ -22,7 +21,6 @@ export const AlbumDetailScreen: React.FC<AlbumDetailScreenProps> = ({ route, nav
   const [review, setReview] = useState(entry?.review || '');
   const [rating, setRating] = useState(entry?.rating || 5);
   const [dateListen, setDateListen] = useState(entry?.dateListen || '');
-  const defaultStyles = useDefaultStyles();
 
   if (!entry) {
     return (

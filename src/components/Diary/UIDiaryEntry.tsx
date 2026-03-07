@@ -2,12 +2,17 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { DiaryEntry } from '../../types';
 
-interface AlbumCardProps {
+interface UIDiaryEntryProps {
   entry: DiaryEntry;
   onPress: () => void;
 }
 
-export const AlbumCard: React.FC<AlbumCardProps> = ({ entry, onPress }) => {
+interface UISimplifiedDiaryEntryProps {
+  entry: DiaryEntry;
+  onPress: () => void;
+}
+
+export const UIDiaryEntry: React.FC<UIDiaryEntryProps> = ({ entry, onPress }) => {
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
       <View style={styles.container}>
@@ -35,6 +40,27 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({ entry, onPress }) => {
       </View>
     </TouchableOpacity>
   );
+};
+
+export const UISimplifiedDiaryEntry: React.FC<UISimplifiedDiaryEntryProps> = ({ entry, onPress }) => {
+    return (
+      <TouchableOpacity onPress={onPress}>
+      <View style={styles.containerSimple}>
+          {entry.album.artwork ? (
+          <Image 
+              source={{ uri: entry.album.artwork }} 
+              style={styles.coverImageSimple} 
+          />
+          ) : (
+          <View style={[styles.coverImageSimple, styles.coverPlaceholderSimple]} />
+          )}
+          <View style={styles.textContainer}>
+          <Text style={styles.titleSimple}>{entry.album.title}</Text>
+          <Text style={styles.artistSimple}>{entry.album.artist}</Text>
+          </View>
+      </View>
+      </TouchableOpacity>
+    )
 };
 
 const styles = StyleSheet.create({
@@ -96,5 +122,35 @@ const styles = StyleSheet.create({
   date: {
     fontSize: 10,
     color: '#999',
+  },
+
+  containerSimple: {
+    flexDirection: 'row',
+    marginBottom: 15,
+    alignItems: 'center',
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  coverImageSimple: {
+    width: 50,
+    height: 50,
+    borderRadius: 4,
+  },
+  coverPlaceholderSimple: {
+    backgroundColor: '#e1e1e1',
+  },
+  textContainer: {
+    marginLeft: 10,
+    justifyContent: 'center',
+    flex: 1,
+  },
+  titleSimple: {
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  artistSimple: {
+    color: 'gray',
+    fontSize: 14,
   },
 });

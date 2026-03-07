@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { SpotifyAlbum } from '../../types/spotifyTypes';
 import { EnumScreenTypes } from '@/types/enums/EnumScreenType';
-import { createNewListEntry } from '@/functions/createNewListEntry';
 import { ListEntry } from '@/services/ListService';
 
 interface UISearchResultProps {
@@ -37,24 +36,24 @@ export const UISearchResult: React.FC<UISearchResultProps> = (props) => {;
     }
   }
 
-    return (
-        <TouchableOpacity onPress={() => handleSelectResult(props.item)}>
-        <View style={styles.resultContainer}>
-            {props.item.thumbnail ? (
-            <Image 
-                source={{ uri: props.item.thumbnail }} 
-                style={styles.thumbnail} 
-            />
-            ) : (
-            <View style={[styles.thumbnail, styles.placeholder]} />
-            )}
-            <View style={styles.textContainer}>
-            <Text style={styles.albumName}>{props.item.name}</Text>
-            <Text style={styles.artistName}>{props.item.artist}</Text>
-            </View>
-        </View>
-        </TouchableOpacity>
-    )
+  return (
+      <TouchableOpacity onPress={() => handleSelectResult(props.item)}>
+      <View style={styles.resultContainer}>
+          {props.item.thumbnail ? (
+          <Image 
+              source={{ uri: props.item.thumbnail }} 
+              style={styles.thumbnail} 
+          />
+          ) : (
+          <View style={[styles.thumbnail, styles.placeholder]} />
+          )}
+          <View style={styles.textContainer}>
+          <Text style={styles.title}>{props.item.name}</Text>
+          <Text style={styles.artist}>{props.item.artist}</Text>
+          </View>
+      </View>
+      </TouchableOpacity>
+  )
 }
 
 const styles = StyleSheet.create({
@@ -79,11 +78,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flex: 1,
   },
-  albumName: {
+  title: {
     fontWeight: 'bold',
     fontSize: 16,
   },
-  artistName: {
+  artist: {
     color: 'gray',
     fontSize: 14,
   },

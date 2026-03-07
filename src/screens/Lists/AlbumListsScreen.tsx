@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, FlatList, Image } from 'react-native';
-import { useDiary } from '@/context/DiaryContext';
-import * as ListService from '../../services/ListService';
+import React, { useCallback, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image, TextInput } from 'react-native';
 import { List } from '@/types';
+import { useListsContext } from '@/context/hooks/useListsContext';
 import { useFocusEffect } from '@react-navigation/native';
 
 interface AlbumListsScreenProps {
@@ -11,21 +10,8 @@ interface AlbumListsScreenProps {
 }
 
 export const AlbumListsScreen: React.FC<AlbumListsScreenProps> = ({ route, navigation }) => {
-  const [lists, setLists] = useState<List[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useFocusEffect(
-    useCallback(() => {
-      loadLists();
-    }, [])
-  );
-
-  const loadLists = async () => {
-    setLoading(true);
-    const userLists = await ListService.getUserLists();
-    setLists(userLists);
-    setLoading(false);
-  };
+  const [query, setQuery] = useState('');
+  const lists = useListsContext(query)
 
   const handleCreateList = () => {
     navigation.navigate('CreateList');
@@ -54,11 +40,16 @@ export const AlbumListsScreen: React.FC<AlbumListsScreenProps> = ({ route, navig
         </TouchableOpacity>
       </View>
 
-      {loading ? (
-        <View style={styles.centerContent}>
-          <Text>Loading lists...</Text>
-        </View>
-      ) : lists.length === 0 ? (
+      <View style={styles.searchContainer}>
+          <TextInput
+              placeholder="Search your lists..."
+              value={query}
+              onChangeText={setQuery}
+              style={styles.searchInput}
+          />
+      </View>
+
+      {lists.length === 0 ? (
         <View style={styles.centerContent}>
           <Text style={styles.emptyText}>No lists yet</Text>
           <Text style={styles.emptySubtext}>Create a list to get started</Text>
@@ -159,5 +150,20 @@ const styles = StyleSheet.create({
       width: 20,
       height: 20,
       opacity: 0.4,
+  },
+  searchContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: 8,
+      paddingHorizontal: 15,
+      paddingVertical: 5
+  }, 
+  searchInput: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: '#ccc',
+      padding: 10,
+      borderRadius: 8,
   },
 });

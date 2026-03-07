@@ -136,7 +136,7 @@ export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ navigation
                       data={recentAlbums}
                       horizontal
                       showsHorizontalScrollIndicator={false}
-                      keyExtractor={(item) => item.albumTitle}
+                      keyExtractor={(item) => item.id}
                       snapToInterval={220}
                       decelerationRate={"fast"}
                       renderItem={({ item }) => (

@@ -1,10 +1,42 @@
 import { useDiary } from "@/context/DiaryContext";
 import { DiaryEntry } from "@/types";
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 
-export const useSectionedDiary = (query: string) => {
-    const { getAllEntries } = useDiary();
+export const useDiaryContext = (query: string) => {
+    const { getAllEntries, loadEntries } = useDiary();
     const entries = getAllEntries();
+
+    useFocusEffect(
+        useCallback(() => {
+            loadEntries(); 
+        }, [loadEntries])
+    );
+
+    return useMemo(() => {
+        const filteredEntries = entries.filter(entry => {
+            const titleMatch = entry.album.title.toLowerCase().includes(query.toLowerCase());
+            const artistMatch = entry.album.artist.toLowerCase().includes(query.toLowerCase());
+            return titleMatch || artistMatch;
+        });
+    
+        const sortedEntries = [...filteredEntries].sort((a, b) => 
+            new Date(b.dateListen).getTime() - new Date(a.dateListen).getTime()
+        );
+    
+        return sortedEntries;
+    }, [entries, query])
+};
+
+export const useSectionedDiaryContext = (query: string) => {
+    const { getAllEntries, loadEntries } = useDiary();
+    const entries = getAllEntries();
+
+    useFocusEffect(
+        useCallback(() => {
+            loadEntries(); 
+        }, [loadEntries])
+    );
 
     return useMemo(() => {
         const filteredEntries = entries.filter(entry => {

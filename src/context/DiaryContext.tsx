@@ -1,25 +1,28 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { Album, DiaryEntry, List } from '../types';
 import * as DiaryService from '../services/DiaryService';
 import * as AlbumService from '../services/AlbumService';
 import * as ListService from '../services/ListService';
 import { TopArtist } from '@/types/topArtist';
+import { useFocusEffect } from '@react-navigation/native';
 
 interface DiaryContextType {
   entries: DiaryEntry[];
   albums: Album[];
+  lists: List[];
   topRatedAlbums: Album[];
   topRatedArtists: TopArtist[];
   loadEntries: () => Promise<void>;
-  loadAlbums: () => Promise<void>;
-  loadLists: () => Promise<void>;
-  loadTopRatedAlbums: () => Promise<void>;
-  loadTopRatedArtists: () => Promise<void>;
+  getAllEntries: () => DiaryEntry[];
+  getEntryById: (id: string) => DiaryEntry | undefined;
   addEntry: (entry: any) => Promise<void>;
   updateEntry: (id: string, entry: Partial<DiaryEntry>) => Promise<void>;
   deleteEntry: (id: string) => Promise<void>;
-  getEntryById: (id: string) => DiaryEntry | undefined;
-  getAllEntries: () => DiaryEntry[];
+  loadAlbums: () => Promise<void>;
+  loadLists: () => Promise<void>;
+  getAllLists: () => List[];
+  loadTopRatedAlbums: () => Promise<void>;
+  loadTopRatedArtists: () => Promise<void>;
   averageRating: number;
 }
 
@@ -32,34 +35,17 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [topRatedAlbums, setTopRatedAlbums] = useState<Album[]>([]);
   const [topRatedArtists, setTopRatedArtists] = useState<TopArtist[]>([]);
 
+  // Diary
   const loadEntries = async () => {
     const diary = await DiaryService.getDiaryEntries();
     setEntries(diary);
   };
 
-  const loadAlbums = async () => {
-    const albums = await AlbumService.getUserAlbums();
-    setAlbums(albums);
-  }
-
-  const loadLists = async () => {
-    const lists = await ListService.getUserLists();
-    setLists(lists);
-  }
-
-  const loadTopRatedAlbums = async () => {
-    const albums = await AlbumService.getTopRatedAlbumsFromDiary();
-    setTopRatedAlbums(albums.slice(0, 5));
+  const getEntryById = (id: string) => {
+    return entries.find(e => e.id === id);
   };
 
-  const loadTopRatedArtists = async () => {
-    const artists = await AlbumService.getTopRatedArtistsFromDiary();
-    setTopRatedArtists(artists.slice(0, 5));
-  };
-
-  useEffect(() => {
-    loadEntries();
-  }, []);
+  const getAllEntries = () => entries;
 
   const addEntry = async (entry: any) => {
     await DiaryService.saveDiaryEntry(entry);
@@ -80,17 +66,42 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     await loadEntries();
   };
 
-  const getEntryById = (id: string) => {
-    return entries.find(e => e.id === id);
+  const loadAlbums = async () => {
+    const albums = await AlbumService.getUserAlbums();
+    setAlbums(albums);
+  }
+
+
+  // Lists
+  const loadLists = async () => {
+    const lists = await ListService.getUserLists();
+    setLists(lists);
   };
 
-  const getAllEntries = () => entries;
+  const getAllLists = () => lists;
+
+
+  // Profile
+  const loadTopRatedAlbums = async () => {
+    const albums = await AlbumService.getTopRatedAlbumsFromDiary();
+    setTopRatedAlbums(albums.slice(0, 5));
+  };
+
+  const loadTopRatedArtists = async () => {
+    const artists = await AlbumService.getTopRatedArtistsFromDiary();
+    setTopRatedArtists(artists.slice(0, 5));
+  };
 
   const averageRating = useMemo(() => {
     if (entries.length === 0) return 0;
     const total = entries.reduce((s, e) => s + (e.rating || 0), 0);
     return total / entries.length;
   }, [entries]);
+
+  useEffect(() => {
+      loadEntries();
+      loadLists();
+  }, [])
 
   return (
     <DiaryContext.Provider
@@ -99,16 +110,18 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       albums, 
       topRatedAlbums,
       topRatedArtists,
+      lists,
       loadEntries, 
-      loadAlbums,
-      loadLists,
-      loadTopRatedAlbums, 
-      loadTopRatedArtists, 
-      getAllEntries, 
+      getAllEntries,
+      getEntryById, 
       addEntry, 
       updateEntry, 
       deleteEntry, 
-      getEntryById, 
+      loadAlbums,
+      loadLists,
+      getAllLists, 
+      loadTopRatedAlbums, 
+      loadTopRatedArtists, 
       averageRating}}
     >
       {children}
@@ -124,36 +137,3 @@ export const useDiary = () => {
   return context;
 };
 
-export const useSectionedDiary = (query: string) => {
-    const { getAllEntries } = useDiary();
-    const entries = getAllEntries();
-
-    return useMemo(() => {
-        const filteredEntries = entries.filter(entry => {
-            const titleMatch = entry.album.title.toLowerCase().includes(query.toLowerCase());
-            const artistMatch = entry.album.artist.toLowerCase().includes(query.toLowerCase());
-            return titleMatch || artistMatch;
-        });
-    
-        const sortedEntries = [...filteredEntries].sort((a, b) => 
-            new Date(b.dateListen).getTime() - new Date(a.dateListen).getTime()
-        );
-    
-        const sections: { title: string; data: DiaryEntry[] }[] = [];
-    
-        sortedEntries.forEach((entry) => {
-            const date = new Date(entry.dateListen);
-            const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' });
-    
-            const lastSection = sections[sections.length - 1];
-    
-            if (!lastSection || lastSection.title !== monthYear) {
-                sections.push({ title: monthYear, data: [entry] });
-            } else {
-                lastSection.data.push(entry);
-            }
-        });
-    
-        return sections;
-    }, [entries, query])
-};

@@ -40,6 +40,7 @@ export const UISearchBar: React.FC<UISearchBarProps> = (props) => {
                 returnKeyType="search" 
                 autoCapitalize="none"
                 autoCorrect={false}
+                placeholderTextColor="#b0b0b0"
             />
 
             <TouchableOpacity 

@@ -9,7 +9,7 @@ interface HomeScreenProps {
 }
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
-  const { entries} = useDiary();
+  const { entries } = useDiary();
 
   const latestEntries = entries.slice(0, 3);
     

@@ -1,4 +1,4 @@
-export interface DiaryEntry {
+export interface NewDiaryEntry {
   spotifyId: string;
   title: string;
   artist: string;

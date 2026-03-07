@@ -1,5 +1,5 @@
 import { supabase } from "supabase/supabaseClient";
-import { DiaryEntry as NewEntryType } from "../types/diaryEntry";
+import { NewDiaryEntry as NewEntryType } from "../types/diaryEntry";
 import { DiaryEntry as AppDiaryEntry } from "../types";
 
 export const saveDiaryEntry = async (entry: NewEntryType) => {

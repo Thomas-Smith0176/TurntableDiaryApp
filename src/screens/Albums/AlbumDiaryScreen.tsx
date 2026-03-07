@@ -1,8 +1,8 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, SectionList } from 'react-native';
-import { AlbumCard } from '../../components/Cards/AlbumCard';
 import { DiaryEntry } from '../../types';
-import { useSectionedDiary } from '../../context/DiaryContext';
+import { useSectionedDiaryContext } from '../../context/hooks/useDiaryContext';
+import { UIAlbumDiary } from '@/components/Diary/UIAlbumDiary';
 
 interface AlbumDiaryScreenProps {
   navigation: any;
@@ -10,7 +10,7 @@ interface AlbumDiaryScreenProps {
 
 export const AlbumDiaryScreen: React.FC<AlbumDiaryScreenProps> = ({ navigation }) => {
   const [query, setQuery] = useState('');
-  const diarySections = useSectionedDiary(query);
+  const diarySections = useSectionedDiaryContext(query);
 
   const handleViewEntry = (entry: DiaryEntry) => {
     navigation.navigate('AlbumDetail', { entryId: entry.id });
@@ -21,6 +21,7 @@ export const AlbumDiaryScreen: React.FC<AlbumDiaryScreenProps> = ({ navigation }
             <View style={styles.header}>
               <Text style={styles.headerTitle}>Music Diary</Text>
             </View>
+
             <View style={styles.searchContainer}>
                 <TextInput
                     placeholder="Search diary by album or artist..."
@@ -29,30 +30,14 @@ export const AlbumDiaryScreen: React.FC<AlbumDiaryScreenProps> = ({ navigation }
                     style={styles.searchInput}
                 />
             </View>
+
             {diarySections.length === 0 ? (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyText}>No albums logged yet</Text>
                 <Text style={styles.emptySubtext}>Start by adding your first album!</Text>
               </View>
             ) : (
-              <SectionList
-                sections={diarySections}
-                keyExtractor={(item) => item.id}
-                renderItem={({item}) => (
-                  <AlbumCard
-                    entry={item}
-                    onPress={() => handleViewEntry(item)}
-                  />
-                )}
-                renderSectionHeader={({section: {title}}) => (
-                  <View style={styles.sectionHeader}>
-                    <Text style={styles.sectionHeaderText}>{title}</Text>
-                    <View style={styles.sectionSeparator} />
-                  </View>
-                )}
-                stickySectionHeadersEnabled={true}
-                contentContainerStyle={styles.listContent}
-              />
+              <UIAlbumDiary diarySections={diarySections} onPress={handleViewEntry}/>
             )}
           </View>
         )}

@@ -7,6 +7,11 @@ import { UISearchResults } from '@/components/Search/UISearchResults';
 import { EnumScreenTypes } from '@/types/enums/EnumScreenType';
 import { UIListEntry } from '@/components/Lists/UIListEntry';
 import { ListEntry } from '@/services/ListService';
+import { AlbumDiaryScreen } from '../Albums/AlbumDiaryScreen';
+import { useDiaryContext } from '@/context/hooks/useDiaryContext';
+import { DiaryEntry } from '@/types';
+import { UIAlbumDiary } from '@/components/Diary/UIAlbumDiary';
+import { UISimplifiedDiary } from '@/components/Diary/UISimplifiedDiary';
 
 interface CreateListScreenProps {
   navigation: any;
@@ -18,10 +23,9 @@ export const CreateListScreen: React.FC<CreateListScreenProps> = ({ navigation }
   const [listEntries, setListEntries] = useState<Partial<ListEntry>[]>([]);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<SpotifyAlbum[]>([]);
-
-  // const handleRemoveAlbum = (albumId: string) => {
-  //   setListEntries(listEntries.filter(id => id !== albumId));
-  // };
+  const [query, setQuery] = useState('');
+  const [diaryView, setDiaryView] = useState(false);
+  const diaryEntries = useDiaryContext(query);
 
   const handleSaveList = async () => {
     if (!title.trim()) {
@@ -40,7 +44,7 @@ export const CreateListScreen: React.FC<CreateListScreenProps> = ({ navigation }
 
     if (result.success) {
       Alert.alert('Success', 'List created successfully');
-      navigation.goBack();
+      navigation.navigate('AlbumLists');
     } else {
       Alert.alert('Error', result.error || 'Failed to create list');
     }
@@ -52,6 +56,17 @@ export const CreateListScreen: React.FC<CreateListScreenProps> = ({ navigation }
         <UIListEntry entry={item} index={index} isEditingList={true} listEntries={listEntries} setListEntries={setListEntries}/>
       </View>
     )
+  }
+
+  const handleSelectResult = (entry: DiaryEntry) => {
+    const newListEntry: Partial<ListEntry> = {
+      listPosition: (listEntries?.length ?? 0) + 1,
+      albumTitle: entry.album.title,
+      artist: entry.album.artist,
+      artwork: entry.album.artwork
+    }
+    setListEntries(prev => [...prev, newListEntry]);
+    setDiaryView(false);
   }
 
   return (
@@ -68,7 +83,7 @@ export const CreateListScreen: React.FC<CreateListScreenProps> = ({ navigation }
             placeholder="Enter list title"
             value={title}
             onChangeText={setTitle}
-            placeholderTextColor="#ccc"
+            placeholderTextColor="#b0b0b0"
           />
         </View>
 
@@ -81,14 +96,45 @@ export const CreateListScreen: React.FC<CreateListScreenProps> = ({ navigation }
             onChangeText={setDescription}
             multiline
             numberOfLines={3}
-            placeholderTextColor="#ccc"
+            placeholderTextColor="#b0b0b0"
           />
         </View>
 
         <View style={styles.section}>
-            <Text style={styles.label}>Music</Text>
+          <Text style={styles.label}>Music</Text>
           <UISearchBar setResults={setResults}/>
         </View>
+
+
+        
+        <View style={styles.actionsRow}>
+          {!diaryView && results.length == 0 ? (
+            <TouchableOpacity
+              style={{flexDirection: 'row'}}
+              onPress={() => {
+                setDiaryView(true)
+              }}
+              disabled={loading}
+            >
+              <Image source={require('../../icons/add-icon.png')} width={30} height={30} style={[styles.icon]} />
+              <Text style={[styles.text, {paddingLeft: 15}]}>Add from diary</Text>
+            </TouchableOpacity>
+          ) : (
+            <>
+            <TouchableOpacity 
+            style={{flexDirection: 'row'}}
+            onPress={() => {
+              setDiaryView(false)
+              setResults([])}}>
+              <Image source={require('../../icons/cancel-icon.png')} width={30} height={30} style={[styles.icon]} />
+              <Text style={[styles.text, {paddingLeft: 15}]}>Back to list</Text>
+            </TouchableOpacity>
+            <TouchableOpacity>
+              <Image source={require('../../icons/filter-icon.png')} width={30} height={30} style={[styles.icon]} />
+            </TouchableOpacity>
+            </>
+            )}
+          </View>
 
         {(results.length > 0 ) ? (
           <UISearchResults
@@ -98,20 +144,17 @@ export const CreateListScreen: React.FC<CreateListScreenProps> = ({ navigation }
             listEntries={listEntries}
             setListEntries={setListEntries}
             setResults={setResults}
-            onClear={() => {
-              setResults([]);
-            }}/>
+            />
         ) : (
         <View style={styles.listSection}>
-          {listEntries.length === 0 ? (
-            <Text style={styles.emptyText}>No records added yet</Text>
+          {diaryView ? (
+            <UISimplifiedDiary diaryEntries={diaryEntries} onPress={handleSelectResult}/>
           ) : 
           (
             <FlatList
               data={listEntries}
               renderItem={renderItem}
               keyExtractor={(item, index) => item.id?.toString() ?? index.toString()}
-              contentContainerStyle={styles.listEntries}
             />
           )
           }
@@ -125,7 +168,7 @@ export const CreateListScreen: React.FC<CreateListScreenProps> = ({ navigation }
           onPress={handleSaveList}
           disabled={loading}
         >
-          <Image source={require('../../icons/save-icon.png')} width={20} height={20} style={[styles.icon]} />
+          <Text style={styles.text}>Save new list</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -154,7 +197,6 @@ const styles = StyleSheet.create({
   },
   listSection: { 
     flex: 1,
-    paddingVertical: 15
   },
   label: {
     fontSize: 14,
@@ -162,9 +204,14 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     color: '#333',
   },
+  text: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#676767',
+  },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#ccc',
     borderRadius: 6,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -187,6 +234,14 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     paddingTop: 12,
   },
+  button: { 
+    backgroundColor: '#c5e9fd',
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginHorizontal: 15,
+    marginBottom: 15
+  },
   saveButton: { 
     backgroundColor: '#93e6c4',
     borderRadius: 8,
@@ -196,13 +251,16 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     opacity: 0.6,
   },
-  listEntries: {
-    borderColor: '#cfcfcf',
-    borderBottomWidth: 0.5,
-  },
   icon: {
     width: 20,
     height: 20,
     opacity: 0.4,
+  },
+  actionsRow: {
+    marginHorizontal: 15,
+    marginBottom: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
 });
