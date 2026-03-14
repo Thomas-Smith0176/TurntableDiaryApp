@@ -9,7 +9,7 @@ interface DateModalProps {
 }
 
 export const DateModal: React.FC<DateModalProps> = ({ isEditingDate, setIsEditingDate, dateListen, setDateListen }) => {
-    const defaultStyles = useDefaultStyles();
+    const defaultStyles = useDefaultStyles('light');
     
     return (
         <Modal

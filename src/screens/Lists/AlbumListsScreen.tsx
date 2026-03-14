@@ -1,8 +1,7 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image, TextInput } from 'react-native';
 import { List } from '@/types';
 import { useListsContext } from '@/context/hooks/useListsContext';
-import { useFocusEffect } from '@react-navigation/native';
 
 interface AlbumListsScreenProps {
   route: any;

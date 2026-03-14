@@ -39,6 +39,7 @@ const styles = StyleSheet.create({
   diaryContainer: {
       flex: 1,
       backgroundColor: '#fff',
+      marginTop: 10
   },
   loadingContainer: {
       flex: 1,

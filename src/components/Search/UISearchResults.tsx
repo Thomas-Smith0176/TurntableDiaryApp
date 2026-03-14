@@ -13,6 +13,7 @@ interface UISearchResultsProps {
     listEntries?: Partial<ListEntry>[];
     setListEntries?: React.Dispatch<React.SetStateAction<Partial<ListEntry>[]>>;
     setResults?: React.Dispatch<React.SetStateAction<SpotifyAlbum[]>>;
+    setQuery: React.Dispatch<React.SetStateAction<string>>;
 }
       
 export const UISearchResults: React.FC<UISearchResultsProps> = (props) => {

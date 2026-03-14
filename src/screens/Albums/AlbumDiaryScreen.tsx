@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, SectionList } from 'react-native';
+import { View, Text, TextInput, StyleSheet, SectionList, TouchableOpacity, Image } from 'react-native';
 import { DiaryEntry } from '../../types';
 import { useSectionedDiaryContext } from '../../context/hooks/useDiaryContext';
 import { UIAlbumDiary } from '@/components/Diary/UIAlbumDiary';
+import { Screen } from 'react-native-screens';
 
 interface AlbumDiaryScreenProps {
   navigation: any;
@@ -16,19 +17,29 @@ export const AlbumDiaryScreen: React.FC<AlbumDiaryScreenProps> = ({ navigation }
     navigation.navigate('AlbumDetail', { entryId: entry.id });
   };
 
+  const handleCreateEntry = () => {
+    navigation.navigate('Add', {
+      screen: "AlbumSearch"
+    })
+  };
+
   return (
           <View style={styles.container}>
             <View style={styles.header}>
               <Text style={styles.headerTitle}>Music Diary</Text>
+              <TouchableOpacity style={styles.createButton} onPress={handleCreateEntry}>
+                <Image source={require('../../icons/add-icon.png')} width={30} height={30} style={[styles.icon]} />
+              </TouchableOpacity>
             </View>
 
             <View style={styles.searchContainer}>
-                <TextInput
-                    placeholder="Search diary by album or artist..."
-                    value={query}
-                    onChangeText={setQuery}
-                    style={styles.searchInput}
-                />
+              <TextInput
+                  placeholder="Search diary by album or artist..."
+                  value={query}
+                  onChangeText={setQuery}
+                  style={styles.searchInput}
+                  placeholderTextColor="#b0b0b0"
+              />
             </View>
 
             {diarySections.length === 0 ? (
@@ -111,5 +122,16 @@ const styles = StyleSheet.create({
       borderColor: '#ccc',
       padding: 10,
       borderRadius: 8,
+  },
+  createButton: {
+    backgroundColor: '#e9e9e9',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  icon: {
+      width: 20,
+      height: 20,
+      opacity: 0.4,
   },
 });

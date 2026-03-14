@@ -42,14 +42,16 @@ export const SignUpScreen = () => {
                 placeholder="Email" 
                 style={styles.input} 
                 value={email} 
-                onChangeText={setEmail} 
+                onChangeText={setEmail}
+                placeholderTextColor='#b0b0b0'
             />
             {!emailProvided && <Text style={{ color: 'red', marginLeft: 12 }}>Email is required</Text>}
             <TextInput 
                 placeholder="Display Name" 
                 style={styles.input} 
                 value={displayName} 
-                onChangeText={setDisplayName} 
+                onChangeText={setDisplayName}
+                placeholderTextColor='#b0b0b0'
             />
             {!displayNameProvided && <Text style={{ color: 'red', marginLeft: 12 }}>Display Name is required</Text>}
             <TextInput 
@@ -57,7 +59,8 @@ export const SignUpScreen = () => {
                 secureTextEntry 
                 style={styles.input} 
                 value={password} 
-                onChangeText={setPassword} 
+                onChangeText={setPassword}
+                placeholderTextColor='#b0b0b0'
             />
             {!passwordProvided && <Text style={{ color: 'red', marginLeft: 12 }}>Password is required</Text>}
 
@@ -85,8 +88,8 @@ const styles = StyleSheet.create({
     margin: 12,
     borderWidth: 1,
     padding: 10,
-    borderRadius: 6,
-    borderColor: '#e0e0e0',
+    borderRadius: 8,
+    borderColor: '#ccc',
     fontSize: 14,
   },
   button: {

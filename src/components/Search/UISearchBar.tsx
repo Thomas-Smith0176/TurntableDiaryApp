@@ -1,30 +1,36 @@
 import { searchAlbums } from "@/services/SpotifyService";
 import { SpotifyAlbum } from "@/types/spotifyTypes";
-import { useState } from "react";
+import { useEffect } from "react";
 import { ActivityIndicator, Image, Keyboard, StyleSheet, TextInput, TouchableOpacity, View } from "react-native"
 
          
          
 interface UISearchBarProps {
+    query: string;
+    setQuery: React.Dispatch<React.SetStateAction<string>>;
     setResults: React.Dispatch<React.SetStateAction<SpotifyAlbum[]>>;
 }
-         
 
 export const UISearchBar: React.FC<UISearchBarProps> = (props) => {  
-    const [loading, setLoading] = useState<boolean>(false);
-    const [query, setQuery] = useState<string>('');
+
+    useEffect(() => {
+        const delayedSearch = setTimeout(() => {
+            if (props.query.length > 2) {
+                handleSearch();
+            } else if (props.query.length === 0) {
+                props.setResults([]);
+            }
+        }, 250);
+        return () => clearTimeout(delayedSearch);
+    }, [props.query]);
 
     const handleSearch = async () => {
-        Keyboard.dismiss();
-        if (query.length > 0) {
-            setLoading(true);
+        if (props.query.length > 0) {
             try {
-                const albums = await searchAlbums(query);
+                const albums = await searchAlbums(props.query);
                 props.setResults(albums);
             } catch (error) {
                 console.error('Error searching albums:', error);
-            } finally {
-                setLoading(false);
             }
         }
     };
@@ -33,25 +39,15 @@ export const UISearchBar: React.FC<UISearchBarProps> = (props) => {
         <View style={styles.container}>
             <TextInput
                 placeholder="Search for a record..."
-                value={query}
-                onChangeText={setQuery}
-                onSubmitEditing={handleSearch}
+                value={props.query}
+                onChangeText={props.setQuery}
                 style={styles.searchInput}
-                returnKeyType="search" 
                 autoCapitalize="none"
                 autoCorrect={false}
                 placeholderTextColor="#b0b0b0"
+                returnKeyType="search"
+                onSubmitEditing={handleSearch}
             />
-
-            <TouchableOpacity 
-                style={styles.searchButton} 
-                onPress={handleSearch}
-                disabled={loading}
-            >
-                {loading ? (<ActivityIndicator size="small" color="#fff" />) : (
-                <Image source={require('../../icons/search-icon.png')} width={20} height={20} style={[styles.icon]} />
-                )}
-            </TouchableOpacity>
         </View>
     )
 }
@@ -69,18 +65,5 @@ const styles = StyleSheet.create({
         borderColor: '#ccc',
         padding: 10,
         borderRadius: 8,
-    },
-    searchButton: {
-        backgroundColor: '#e9e9e9',
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        borderRadius: 8,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    icon: {
-        width: 20,
-        height: 20,
-        opacity: 0.4,
-    },
+    }
 })

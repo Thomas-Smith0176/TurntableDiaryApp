@@ -28,12 +28,15 @@ export const UIDiaryEntry: React.FC<UIDiaryEntryProps> = ({ entry, onPress }) =>
         )}
         <View style={styles.content}>
           <Text style={styles.title} numberOfLines={2}>{entry.album.title}</Text>
-          <Text style={styles.artist} numberOfLines={1}>{entry.album.artist}</Text>
+          <View style={styles.container}>
+            <Text style={styles.artist} numberOfLines={1}>{entry.album.artist}</Text>
+            <Text style={styles.artist} numberOfLines={1}>• {entry.album.releaseDate.slice(0, 4)}</Text>
+          </View>
           <Text style={styles.rating}>{entry.rating}/10</Text>
-          <Text style={styles.review} numberOfLines={2}>
+          <Text style={styles.review} numberOfLines={1}>
             {entry.review}
           </Text>
-          <Text style={styles.date}>
+          <Text style={styles.dateListened}>
             {new Date(entry.dateListen).toLocaleDateString()}
           </Text>
         </View>
@@ -55,8 +58,8 @@ export const UISimplifiedDiaryEntry: React.FC<UISimplifiedDiaryEntryProps> = ({ 
           <View style={[styles.coverImageSimple, styles.coverPlaceholderSimple]} />
           )}
           <View style={styles.textContainer}>
-          <Text style={styles.titleSimple}>{entry.album.title}</Text>
-          <Text style={styles.artistSimple}>{entry.album.artist}</Text>
+            <Text style={styles.titleSimple}>{entry.album.title}</Text>
+            <Text style={styles.artistSimple}>{entry.album.artist}</Text>
           </View>
       </View>
       </TouchableOpacity>
@@ -95,8 +98,9 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 12,
-    justifyContent: 'space-between',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    justifyContent: 'space-between'
   },
   title: {
     fontSize: 15,
@@ -104,6 +108,12 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   artist: {
+    fontSize: 13,
+    color: '#666',
+    marginBottom: 4,
+    marginRight: 5
+  },
+  date: {
     fontSize: 13,
     color: '#666',
     marginBottom: 4,
@@ -119,9 +129,10 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     lineHeight: 16,
   },
-  date: {
+  dateListened: {
     fontSize: 10,
     color: '#999',
+    alignSelf: 'flex-end'
   },
 
   containerSimple: {

@@ -34,7 +34,7 @@ export const AddEntryScreen: React.FC<AddEntryScreenProps> = ({ route, navigatio
       artworkUrl: selectedAlbum.artwork || '',
       rating: rating,
       review: review,
-      dateListened: new Date().toISOString().split('T')[0],
+      dateListened: dateListen,
     };
 
     await addEntry(entryPayload);

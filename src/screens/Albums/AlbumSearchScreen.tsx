@@ -16,6 +16,7 @@ interface AlbumSearchScreenProps {
 };
 
 export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ navigation }) => {
+  const [query, setQuery] = useState('')
   const [results, setResults] = useState<SpotifyAlbum[]>([]);
   const [loadingHistory, setLoadingHistory] = useState<boolean>(false);
   const [loadingPopular, setLoadingPopular] = useState<boolean>(false);
@@ -59,7 +60,10 @@ export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ navigation
   return (
       <View style={styles.container}>
         <View style={styles.header}>
-            <UISearchBar setResults={setResults}/>
+            <UISearchBar 
+              query={query}
+              setResults={setResults}
+              setQuery={setQuery}/>
         </View>
 
         {/* Search results */}
@@ -68,6 +72,7 @@ export const AlbumSearchScreen: React.FC<AlbumSearchScreenProps> = ({ navigation
             screen={EnumScreenTypes.Album}
             results={results} 
             navigation={navigation}
+            setQuery={setQuery}
             />
         )}
 
