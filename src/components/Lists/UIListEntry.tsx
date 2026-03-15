@@ -7,10 +7,11 @@ interface UIListEntryProps {
   index: number;
   isEditingList: Boolean;
   listEntries: Partial<ListEntry>[];
+  showNumbering: boolean;
   setListEntries: React.Dispatch<React.SetStateAction<Partial<ListEntry>[]>>;
 }
 
-export const UIListEntry: React.FC<UIListEntryProps> = ({ entry, index, isEditingList, listEntries, setListEntries }) => {
+export const UIListEntry: React.FC<UIListEntryProps> = ({ entry, index, isEditingList, listEntries, showNumbering, setListEntries }) => {
 
     const moveItem = (index: number, direction: 'up' | 'down') => {
         const newEntries = [...listEntries];
@@ -48,9 +49,10 @@ export const UIListEntry: React.FC<UIListEntryProps> = ({ entry, index, isEditin
             </View>
 
             <View style={styles.rightActionsContainer}>
-                {!isEditingList ? (
+                {(!isEditingList && showNumbering) && (
                     <Text style={styles.listEntryPosition}>{index + 1}</Text>
-                ) : (
+                )}
+                {isEditingList && (
                     <View style={styles.reorderContainer}>
                         <TouchableOpacity 
                         onPress={() => moveItem(index, 'up')}

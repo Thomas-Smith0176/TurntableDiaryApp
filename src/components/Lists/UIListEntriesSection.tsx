@@ -22,13 +22,21 @@ interface UIListEntriesSectionProps {
 export const UIListEntriesSection: React.FC<UIListEntriesSectionProps> = ({ navigation, isEditing, listEntries, results, setListEntries, setResults }) => {
     const [diaryView, setDiaryView] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [showNumbering, setShowNumbering] = useState(true);
     const [diaryQuery, setDiaryQuery] = useState('');
     const diaryEntries = useDiaryContext(diaryQuery);
 
      const renderItem: ListRenderItem<Partial<ListEntry>> = ({item, index}) => {
         return (
           <View>
-            <UIListEntry entry={item} index={index} isEditingList={isEditing} listEntries={listEntries} setListEntries={setListEntries}/>
+            <UIListEntry 
+                entry={item} 
+                index={index} 
+                isEditingList={isEditing} 
+                listEntries={listEntries}
+                showNumbering={showNumbering} 
+                setListEntries={setListEntries}
+            />
           </View>
         )
       }
@@ -71,19 +79,34 @@ export const UIListEntriesSection: React.FC<UIListEntriesSectionProps> = ({ navi
                     <Text style={[styles.text, {paddingLeft: 15}]}>Back to list</Text>
                 </TouchableOpacity>
                 <TouchableOpacity>
-                    <Image source={require('../../icons/filter-icon.png')} width={30} height={30} style={[styles.icon]} />
+                    {/* <Image source={require('../../icons/filter-icon.png')} width={30} height={30} style={[styles.icon]} /> */}
                 </TouchableOpacity>
                 </>
                 )}
             </View>
             {!diaryView && (
+            <>
             <View style={styles.section}>
                 <UISearchBar 
                     setResults={setResults}
                     query={searchQuery}
                     setQuery={setSearchQuery}
                 />
-            </View>)}
+            </View>
+            <View style={styles.section}>
+                <TouchableOpacity 
+                style={{flexDirection: 'row'}}
+                onPress={() => {setShowNumbering(!showNumbering)}}>
+                    {showNumbering ? (<>
+                        <Image source={require('../../icons/eye-shut-icon.png')} width={30} height={30} style={[styles.icon]} />
+                        <Text style={[styles.text, {paddingLeft: 15}]}>Hide numbers</Text>
+                    </>) : (<>
+                        <Image source={require('../../icons/eye-icon.png')} width={30} height={30} style={[styles.icon]} />
+                        <Text style={[styles.text, {paddingLeft: 15}]}>Show numbers</Text>
+                    </>)}
+                </TouchableOpacity>
+            </View>
+            </>)}
             </>)}
 
             {(results.length > 0 ) ? (
