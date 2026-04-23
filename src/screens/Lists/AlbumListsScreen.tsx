@@ -45,6 +45,7 @@ export const AlbumListsScreen: React.FC<AlbumListsScreenProps> = ({ route, navig
               value={query}
               onChangeText={setQuery}
               style={styles.searchInput}
+              placeholderTextColor="#b0b0b0"
           />
       </View>
 
